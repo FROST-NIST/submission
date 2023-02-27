@@ -1,0 +1,7 @@
+Checklist for M4: Performance Analysis
+
+[] Memory complexity
+[] Processing time
+[] Networking time
+[] Communication complexity
+[] Round complexity

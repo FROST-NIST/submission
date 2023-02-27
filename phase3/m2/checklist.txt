@@ -1,0 +1,6 @@
+Checklist for M2: Open-source Reference Implementation
+
+[] Is self contained
+[] Is licensed as open source
+[] Contains in-line comments
+[] Has a clear API

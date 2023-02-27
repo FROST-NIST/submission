@@ -1,0 +1,9 @@
+Checklist for M3: Execution Instructions
+
+[] User Manual: compilation
+[] User manual: parametrization
+[] User manual: execution
+[] User manual: KAT set
+[] Script: KAT
+[] Script: Benchmark
+[] Script: others (optional)

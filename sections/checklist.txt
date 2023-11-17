@@ -1,8 +1,0 @@
-Must include the main components
-
-[]   Written specification
-[]   Reference implementation
-[]   Execution instructions
-[]   Experimental evaluation
-[]   Technical Requirements
-[]   Additional statements

@@ -1,0 +1,119 @@
+%\documentclass[11pt,letter9paper]{article}
+\documentclass{llncs}
+\pagestyle{plain}
+
+\usepackage{amsfonts,amsmath,amssymb}
+\usepackage[backend=bibtex,giveninits=true,style=numeric,maxnames=6]{biblatex}
+\bibliography{references}
+\renewcommand*{\bibfont}{\footnotesize}
+\usepackage{booktabs}
+%\usepackage[margin=1.5cm,footskip=30pt,includefoot]{geometry} % messes with LNCS margin formatting
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks=true,citecolor=black,linkcolor=black,urlcolor=black]{hyperref}
+\usepackage{mathtools}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{comment}
+\usepackage{multirow}
+\DeclareMathAlphabet{\mathsc}{OT1}{cmr}{m}{sc}
+\usepackage{bm}
+\usepackage{framed}
+\usepackage{siunitx}
+\usepackage[capitalise]{cleveref}
+\usepackage{enumitem}
+\usepackage{microtype} % fixes overhangs
+\usepackage{ifthen} % \ifthenelse for figures
+\usepackage{float} % to make figures not go to the end
+\usepackage{dashbox} % dashed boxes to highlight where FROST1 and FROST 2 differ
+\usepackage{soul}
+\usepackage{comment}
+\usepackage{pifont} % to get \xmark
+
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+\usepackage[
+%lambda, % or n
+%advantage,
+%operators,
+%sets,
+%adversary,
+%landau,
+%probability,
+%notions,
+%logic,
+%ff,
+%mm,
+%primitives,
+%events,
+%complexity,
+%oracles,
+%asymptotics,
+%keys
+]{cryptocode}
+
+\usepackage{array}
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\newcolumntype{C}[1]{>{\PreserveBackslash\centering}p{#1}}
+\newcolumntype{R}[1]{>{\PreserveBackslash\raggedleft}p{#1}}
+\newcolumntype{L}[1]{>{\PreserveBackslash\raggedright}p{#1}}
+\def\arraystretch{1.15}
+
+%\usepackage{ulem} % strikethrough text but makes references overhang so removed
+
+% From CTZ Paper
+\usepackage{setspace} % for \setstretch
+
+%%% Delete if include llncs
+%\newtheorem{definition}{Definition}[section]
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+
+%\setcounter{tocdepth}{3}
+
+\usepackage{afterpage} % for \setstretch
+
+\title{FROST Submission Abstract}
+\date{\today}
+
+\author{}
+
+
+\institute{}
+
+
+\input{macros}
+
+\begin{document}
+
+
+\let\oldaddcontentsline\addcontentsline
+\def\addcontentsline#1#2#3{}
+
+	%{\let\addcontentsline\relax}
+	\maketitle
+
+
+	\begin{abstract}
+    This document provides an early abstract for the Flexible Round-Optimized
+    Schnorr Threshold Signature (FROST) scheme submission to NIST.
+  \end{abstract}
+
+  \def\addcontentsline#1#2#3{\oldaddcontentsline{#1}{#2}{#3}}
+	\onehalfspacing
+  \setcounter{tocdepth}{3}
+	\tableofcontents
+	\singlespacing
+	\newpage
+
+
+	\input{team}
+	\input{abstract}
+
+	\printbibliography
+
+
+  %\appendix
+
+\end{document}

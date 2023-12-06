@@ -19,11 +19,36 @@ Here, we describe the (unoptimized) two-round version of the FROST.
 However, implementations may wish to perform the first round in a batched setting,
 allowing the scheme to be used in a manner where online signing requires only a single round of communication.
 
-\paragraph{System Model.}
+\subsubsection{System Model.}
+We assume the following when describing FROST:
 
-\paragraph{Protocol Approach.}
+\begin{itemize}[itemsep=0.5em]
+\item \textbf{Idealized Key Generation.} Key generation is an idealized operation.
+We assume that each participant is initialized with their respective secret key share,
+the public key shares of all other participants,
+and the joint public key representing the group.
+\item \textbf{Coordinator Role.} We model message passing between participants
+via a centralized coordinator.
+The coordinator is trusted to not perform denial-of-service attacks by dropping messages,
+but otherwise the coordinator is untrusted.
+\end{itemize}
 
-\paragraph{Security Properties.}
-(including system model, the protocol approach, and main security properties)
+\subsubsection{Protocol Approach.}
+
+FROST signing can be performed either in two online rounds,
+or in one batched preprocessing round,
+and a second purely online round.
+Then, a final stage to perform aggregation is required,
+at which the joint signature is output.
+
+\paragraph{Round One.}
+
+\paragraph{Round Two.}
+
+\paragraph{Aggregation and Signature Publication.}
+
+\subsubsection{Security Properties.}
+
+
 
 

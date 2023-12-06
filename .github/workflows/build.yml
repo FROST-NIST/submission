@@ -1,0 +1,38 @@
+name: Build and upload PDFs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        name: Tectonic Cache
+        with:
+          path: ~/.cache/Tectonic
+          key: ${{ runner.os }}-tectonic-${{ hashFiles('**/*.tex') }}
+          restore-keys: |
+            ${{ runner.os }}-tectonic-
+      - uses: wtfjoke/setup-tectonic@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build phase1 PDF
+        run: tectonic -X compile phase1/main.tex
+      - name: Build m1 PDF
+        run: tectonic -X compile m1/main.tex
+
+      - run: mkdir output
+      - run: mv phase1/main.pdf output/phase1.pdf
+      - run: mv m1/main.pdf output/m1.pdf
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v3
+        with:
+          name: frost-nist-${{ github.ref == 'refs/heads/main' && 'main' || format('pr-{0}', github.event.number) }}
+          path: output/

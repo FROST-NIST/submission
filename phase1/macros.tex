@@ -1,0 +1,132 @@
+% !TEX root = main.tex
+
+\definecolor{light-gray}{gray}{0.89}
+
+\newcommand{\liz}[1]{ { \color{magenta}  Liz:  #1 } }
+\newcommand{\mary}[1]{ { \color{cyan}  Mary:  #1 } }
+\newcommand{\chelsea}[1]{ { \color{violet}  Chelsea: #1 } }
+\newcommand{\change}[1]{ { \color{blue}   #1 } }
+
+% General
+\newcommand{\zo}{\{0,1\}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Zp}{\mathbb{Z}_p}
+\newcommand{\bigabs}[1]{\bigl| #1 \bigr|}
+\newcommand{\iseq}{\stackrel{?}{=}}
+\newcommand\supth{\ensuremath{^{\textrm{\scriptsize th}}}}
+\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\set}[1]{[#1]}
+\newcommand{\intvec}[1]{\mathbf{#1}}
+\newcommand{\secp}{\kappa}
+\newcommand{\usecp}{1^{\secp}}
+\newcommand{\randpick}{{\:{\leftarrow{\hspace*{-3pt}\raisebox{.75pt}{$\scriptscriptstyle\$$}}}\:}}
+
+% Security Definitions
+\newcommand{\uf}{\mathsf{UF}}
+\newcommand{\aduf}{\mathsf{adp\hbox{-}UF}}
+\newcommand{\suf}{\mathsf{UF}}
+\newcommand{\advant}[2]{\ensuremath{\textsf{Adv}^{\textrm{#1}}_{#2}}}
+\newcommand{\defn}[1]{{\bf {#1}}}
+\newcommand{\algcom}{\em\ \ /\!/ \  }
+\newcommand{\ssid}{\mathsf{ssid}}
+\newcommand{\plus}{\raisebox{.4\height}{\scalebox{.8}{+}}}
+
+% threshold schemes
+\newcommand{\threshsig}{\mathsf{TS}}
+\newcommand{\mbcj}{\mathsf{mBCJ}}
+\newcommand{\frost}{\mathsf{FROST}}
+\newcommand{\pedpop}{\mathsf{PedPoP}}
+\newcommand{\sparkle}{\mathsf{Sparkle}}
+
+% Formatting
+\newcommand{\api}{\hangindent=\parindent \hangafter=1 \noindent}
+\newcommand{\parhead}[1]{\medskip\noindent{\bfseries\boldmath\ignorespaces{#1}}}
+
+% games
+\newcommand{\BigO}{\mathcal{O}}
+\newcommand{\oracle}{\BigO}
+\newcommand{\G}{\mathsf{Game}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\main}{\mathsc{main}}
+\newcommand{\pr}{\mathsf{Pr}}
+\newcommand{\Adv}{\mathsf{Adv}}
+\newcommand{\negl}{\nu}
+
+% assumptions
+\newcommand{\schnorr}{\mathsf{schnorr}}
+\newcommand{\aomdl}{\mathsf{aomdl}}
+\newcommand{\omdl}{\mathsf{omdl}}
+\newcommand{\odl}{\mathsf{odl}}
+\newcommand{\odlsol}{\BigO^{\mathsf{dlsol}}}
+\newcommand{\dl}{\mathsf{dl}}
+\newcommand{\dlchal}{Y}
+\newcommand{\dlsol}{y}
+\newcommand{\limdl}{q}
+
+% Adversaries
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\Cdv}{\mathcal{C}}
+\newcommand{\Ddv}{\mathcal{D}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\X}{\mathcal{X}}
+
+% Hash functions
+\newcommand{\Hash}{\mathsf{H}}
+\newcommand{\HashNon}{\mathsf{H_{non}}}
+\newcommand{\HashSig}{\mathsf{H_{sig}}}
+\newcommand{\state}{\mathsf{st}}
+\newcommand{\signerindex}{i}
+
+% algorithms
+\newcommand{\Setup}{\mathsf{Setup}}
+\newcommand{\Gr}{\mathbb{G}}
+\newcommand{\ParGen}{\mathsf{Setup}}
+\newcommand{\GroupGen}{\mathsf{GroupGen}}
+\newcommand{\pp}{\mathsf{par}}
+\newcommand{\KeyGen}{\mathsf{KeyGen}}
+\newcommand{\Verify}{\mathsf{Verify}}
+\newcommand{\Combine}{\mathsf{Combine}}
+\newcommand{\Sign}{\mathsf{Sign}}
+
+% Multi-party signature notation
+\newcommand{\skshare}{\fullsk}
+\newcommand{\sk}{\mathsf{sk}}
+\newcommand{\pk}{\mathcal{PK}}
+\newcommand{\pkshare}{\mathcal{PK}}
+\newcommand{\aggsig}{z}
+\newcommand{\sig}{\sigma}
+\newcommand{\aggR}{R}
+
+% Threshold notation
+\newcommand{\share}{\bar{x}}
+\newcommand{\lagrange}{\lambda}
+\newcommand{\lagrangezSet}{\dot{\S}}
+\newcommand{\DKG}{\mathsf{DKG}}
+\newcommand{\SIM}{\mathsf{SIM}}
+\newcommand{\corrupt}{\mathsf{cor}}
+\newcommand{\honest}{\mathsf{hon}}
+\newcommand{\coalition}{C}
+\newcommand{\numParties}{n}
+\newcommand{\thresh}{t}
+\newcommand{\tcor}{t-1} % corruption threshold
+
+% Shamir secret sharing
+\newcommand{\IssueShares}{\mathsf{Share}}
+\newcommand{\Recover}{\mathsf{Recover}}
+\newcommand{\tss}{\mathcal{SS}}
+\newcommand{\shamir}{\mathsf{Shamir}}
+
+% frost proof
+\newcommand{\simid}{\tau}
+\newcommand{\BadHash}{\mathsf{BadHash}}
+\newcommand{\HashColl}{\mathsf{HashColl}}
+\newcommand{\counter}{ct}
+\newcommand{\QSign}{Q_{\Sign}}
+\newcommand{\QSignTwo}{Q_{\Sign'}}
+
+% vector notation
+\newcommand{\bfa}{\textbf{a}}
+\newcommand{\bfb}{\textbf{b}}
+\newcommand{\bfs}{\textbf{s}}

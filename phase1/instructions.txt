@@ -1,0 +1,11 @@
+(Optional) Early abstract: No later than about 90 days (exact date to be deter
+mined) after the final version of this call is published, a short document (with no
+more than three pages) can be submitted with a title, a list of team members, and
+a preliminary abstract of a planned full package to be submitted later (Ph3). The
+abstract should identify the primitives to be thresholdized and their corresponding
+category and subcategory(ies)/type(s), give an outline of the threshold approach
+(including system model, the protocol approach, and main security properties), and
+list the most relevant bibliographic references. This phase for optional submission
+(not mandatory and non-committing) is intended to facilitate early discussion of the
+expected coverage of each category/subcategory, and may help determine useful
+merges, differentiations, or alternative submissions

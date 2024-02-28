@@ -72,12 +72,19 @@ $R$ is derived as explained above.
 The output signature $\sigma = (R,z)$ is a standard Schnorr signature.
 
 \subsubsection{Security Properties.}
+FROST achieves a strong notion of unforgeability under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM) as we discuss in the following.
+In general, unforgeability guarantees that an adversary even corrupting the coordinator and up to $t-1$ signers cannot generate a valid signature $\sigma$ for $\msg$ that is not supposed to be issued. As noticed by~\cite{BellareCKMTZ22}, there are different levels of conditions to declare a signature for $\msg$ is issued, which gives different levels of security (ordered from weak to strong):
+\begin{itemize}
+\item $\TSUF{0}$: At least one honest party generated a signature share for $\msg$.
+\item $\TSUF{1}$: At least $(t - |\corruptedSigners|)$ honest parties generated a signature share for $\msg$, where $\corruptedSigners$ denotes the set of corrupted signers.
+\item $\TSUF{2}$: There exists a second-round signing session with coalition $\coalition$, $\msg$ and some input $\{ (i, R_i, S_i)\}_{i \in \coalition})$ in which at least $(t - |\corruptedSigners|)$ honest parties from $\coalition$ responded.
+\end{itemize}
+It is shown by~\cite{BellareCKMTZ22} that FROST achieves $\TSUF{2}$.
 
-FROST is statically secure assuming fewer than $t$ parties are corrupted,
-and the algebraic one-more discrete logarithm (AOMDL) assumption holds in the random oracle model (ROM).
-
-TODO: add a summary here of different TS-UF levels.
+Moreover,~\cite{BellareCKMTZ22} shows that FROST is \emph{strong} unforgeable, referred to as $\TSSUF{2}$, which additionally guarantees that for each second-round signing session that satisfies the condition of $\TSUF{2}$ mentioned above at most one signature is supposed to be issued and there exists an efficient algorithm that returns whether a signature is supposed to be issued by a signing session given its second-round coalition $\coalition$ and input $(\msg, \{ (i, R_i, S_i)\}_{i \in \coalition})$.
 
 
+%FROST is statically secure assuming fewer than $t$ parties are corrupted,
+%and the algebraic one-more discrete logarithm (AOMDL) assumption holds in the random oracle model (ROM).
 
-
+%TODO: add a summary here of different TS-UF levels.

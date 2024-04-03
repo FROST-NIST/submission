@@ -6,38 +6,33 @@ We here give a rationale for design decisions and the chosen system model, as we
 
 
 \subsection{Backwards Compatibility}\label{section:comparisons:compatibility}
-$\frost$ is backwards compatible with any protocol using the NIST standardised EDDSA scheme \cite{}.
+$\frost$ is backwards compatible with any protocol using the NIST standardised 
+Edwards-curve Digital Signature Algorithm (EdDSA) digital signature scheme \cite{EdDSA}.
+EdDSA is a variant of Schnorr signature based on twisted Edwards curves.
 No changes to existing implementations of the signature verifier are required.
 The signing procedure, however, is changed to support threshold signers.
 
 \subsection{Security Assumptions}\label{section:comparisons:security}
-$\frost$ is secure under the Algebraic-One-More-Discrete-Logarithm ($\aomdl$) problem.
-This is a falsifiable assumption that holds in the generic group model \cite{}.
-It is strictly better than the non-falsifiable One-More-Discrete-Logarithm problem because the adversary can only query on known linear combinations of fixed challenges,
+$\frost$ is secure under the Algebraic-One-More-Discrete-Logarithm ($\aomdl$) problem \cite{NickRS21}.
+This is a falsifiable assumption that holds in the generic group model \cite{CorettiDG18,BauerFP21}.
+It is strictly better than the non-falsifiable One-More-Discrete-Logarithm problem \cite{BellareNPS03} because the adversary can only query on known linear combinations of fixed challenges,
 as opposed to any group element.
-It is strictly worse than the discrete-logarithm $(\dl)$ assumption under which the base EDDSA signature is secure.
+It is strictly worse than the discrete-logarithm $(\dl)$ assumption under which the base EdDSA signature is secure.
 An adversary that solves $\dl$ can also solve $\aomdl$, but an adversary that solves $\aomdl$ cannot necessarily solve $\dl$.
 
-
-
-$\frost$ generates EDDSA \mary{is this the formal name?} signatures which cannot be post-quantum secure, because EDDSA depends on the discrete logarithm assumption.
+$\frost$ generates EdDSA signatures which cannot be post-quantum secure, because EdDSA depends on the discrete logarithm assumption.
 There is a known quantum attack against the discrete logarithm problem.
 
 \subsection{Concurrency}\label{section:comparisons:concurrency}
-$\frost$ is concurrently secure.  There are no restrictions on the number of sessions an adversary can have open at the same time.
+$\frost$ is concurrently secure.  There are no restrictions on the number of sessions a polynomial time adversary can have open at the same time.
 
 \subsection{Idealised Models}\label{section:comparisons:idealised}
 The security reduction for $\frost$ is given in the programmable random oracle model.
-It is expected the idealised model for any threshold protocol producing EDDSA signatures must at least require non-programmable random oracles.
-This is because there is no security reduction for EDDSA without any random oracle. \mary{Is this true?  There might be something around correlation intractable hash functions???}
-In fact there is no known security reduction for $\frost$ in a non-programmable random oracle model.
-For example, there is no known security reduction for $\frost$ in the generic group model with only non-programmable random oracles.
-This is in contrast to $3$ round schemes \cite{}.
-We do not know if this is fundamental or not.
-If this was fundamental it would be the first concrete protocol that can be proven in the programmable random oracle model but cannot be proven in the generic group model with non-programmable random oracles.
+It is expected the idealised model for any threshold protocol producing EdDSA signatures must be stronger than the standard model.
+This is because there is no security reduction for EdDSA without any random oracle~\cite{PaillierV05,FischlinF13,FleischhackerJS19}
 
 \subsection{Robustness}
-$\frost$ is not fully robust because there are no guarantees that any given session will terminate.
+$\frost$ is not  robust because there are no guarantees that any given session will terminate.
 If a session does not terminate then this does not effect the unforgeability security guarantees.
 $\frost$ does satisfy identifiable abort.  This means that if any party does not follow the honest signing protocol then they can be actively detected and removed from future iterations of the protocol.
 
@@ -47,15 +42,18 @@ $\frost$ does satisfy identifiable abort.  This means that if any party does not
 There is no adaptive security reduction for $\frost$.
 There is also no known adaptive attack against $\frost$.
 
-There exist $3$ round schemes that provably fully adaptive \cite{} in the Algebraic Group Model with non-programmable random oracles.  However there is no static or adaptive security reduction of $\frost$ in this model.  See \cref{section:comparisons:idealised}.
+There exist $3$ round schemes that provably fully adaptive \cite{} in the algebraic group model with non-programmable random oracles.  However there is no static or adaptive security reduction of $\frost$ in this model.  
 
 \subsection{Number of Rounds}\label{section:comparisons:rounds}
-Currently there is no known efficient concurrently secure $2$-round threshold signature scheme that generates EDDSA signatures that is secure under $\dl$.
-We do not know if this is fundamental or not.  However, there are efficient concurrently secure $3$-round threshold signature schemes \cite{}.
-The $3$ round schemes require the message to be fixed in the first round of the protocol.
-In contrast $\frost$ allows the message to be determined only in the final round of signing.
+$\frost$ has $2$ signing rounds and allows the message to be determined in the second round of signing.
 Thus $\frost$ allows for an effective non-interactive signing procedure assuming that a preprocessing phase is run in advance.
-This is not possible for any scheme that depends on $\dl$.
+This is not possible for any threshold scheme producing EdDSA signatures that depends on $\dl$.
+
+Currently there is no known efficient concurrently secure $2$-round threshold signature scheme that generates EdDSA signatures that is secure under $\dl$.
+We do not know if this is fundamental or not.  However, there are efficient concurrently secure $3$-round threshold signature schemes \cite{}.
+The $3$ round schemes require the message to be fixed in the first or second round of the protocol.
+
+
 
 \subsection{Communication Complexity}
 

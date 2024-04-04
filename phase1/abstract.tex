@@ -58,7 +58,7 @@ containing the coalition of parties and their respective commitments.
 To begin,
 each party derives binding factors $\bindingfactor_i \gets \HashNon(i, B)$ for each party $i \in \coalition$.
 Then, each party derives $R \gets \prod_{i \in \coalition} R_i \cdot S_i^{\bindingfactor_i}$.
-Each party derives the challenge as $c \gets \HashSig(\pk, R, c)$,
+Each party derives the challenge as $c \gets \HashSig(R, \pk, m)$,
 and then generates their signature share as
 $z_\partyid \gets r_\partyid + s_\partyid \cdot \bindingfactor_i + c \cdot \sk_i \cdot \lambda_i$,
 where $\lambda_i$ is the Lagrange coefficient.

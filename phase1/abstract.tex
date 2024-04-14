@@ -41,25 +41,29 @@ and a second purely online round.
 Then, a final stage to perform aggregation is required,
 at which the joint signature is output.
 
+Note that while FROST assumes that signing nonces are used at most once,
+it does \emph{not} assume that participants maintain consistent session identifiers.
+To reflect this requirement,
+we introduce the notation of $\eid$, to denote an execution identifier maintained locally by each participant.
+$\eid$ is \emph{not} consistent among all participants.
+
 \paragraph{Round One.}
 The first signing round of FROST can be performed either at the time of signing,
 or as a batched operation during a pre-processing phase.
 
-Let $\eid$ denote an execution identifier maintained locally by each participant
-(which is \emph{not} consistent among all participants).
 Each party with identifier $\partyid$ samples two nonces $(r_{\partyid,\eid},  s_{\partyid, \eid}) \randpick \Zp$,
 and then derives their corresponding commitments  $R_{\partyid,\eid} \gets g^{r_{\partyid, \eid}}$, $ S_{\partyid,\eid} \gets  g^{s_{\partyid,\eid}}$.
 They store $(r_{\partyid,\eid}, s_{\partyid,\eid})$ in their internal state,
 and output $(R_{\partyid,\eid}, S_{\partyid,\eid})$.
 
 \paragraph{Round Two.}
-All participants in a signing coalition $\coalition$ accept as input a message $\msg$,
+All participants in a signing coalition $\coalition \subseteq \set{n}, \lvert C \rvert \geq t$ accept as input a message $\msg$,
 and a set of tuples $B = \{ (i, R_{i,\eid}, S_{i,\eid})\}_{i \in \coalition}$,
 containing the coalition of parties and their respective commitments.
 
 To begin,
 each party derives binding factors $\bindingfactor_i \gets \HashNon(i, B)$ for each party $i \in \coalition$.
-Then, each party derives $R \gets \prod_{i \in \coalition} R_{i,\eid} \cdot  S_{i,\eid}^{\bindingfactor_i}$.
+Then, each party derives the group commitment $R \gets \prod_{i \in \coalition} R_{i,\eid} \cdot  S_{i,\eid}^{\bindingfactor_i}$.
 Each party derives the challenge as $c \gets \HashSig(R, \pk, m)$,
 and then generates their signature share as
 $z_\partyid \gets r_{\partyid,\eid} + s_{\partyid,\eid} \cdot \bindingfactor_i + c \cdot \sk_i \cdot \lambda_i$,
@@ -68,9 +72,9 @@ Each party outputs $z_\partyid$ as their response,
 and deletes $(r_{\partyid,\eid}, s_{\partyid,\eid})$.
 
 
-\paragraph{Aggregation.}
-the combiner derives $z = \sum_{i \in \coalition} z_i$,
-$R$ is derived as explained above.
+\paragraph{Combine.}
+The combiner derives the joint response $z = \sum_{i \in \coalition} z_i$.
+The group commitment $R$ is derived as explained above.
 The output signature $\sigma = (R,z)$ is a standard Schnorr signature.
 
 \subsubsection{Security Properties.}

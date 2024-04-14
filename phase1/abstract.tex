@@ -45,25 +45,27 @@ at which the joint signature is output.
 The first signing round of FROST can be performed either at the time of signing,
 or as a batched operation during a pre-processing phase.
 
-Each party with identifier $\partyid$ samples two nonces $(r_\partyid, s_\partyid) \randpick \Zp$,
-and then derives their corresponding commitments $R_\partyid \gets g^{r_\partyid}$, $ S_\partyid \gets g^{s_\partyid}$.
-They store $(r_\partyid, s_\partyid)$ in their internal state,
-and output $(R_\partyid, S_\partyid)$.
+Let $\eid$ denote an execution identifier maintained locally by each participant
+(which is \emph{not} consistent among all participants).
+Each party with identifier $\partyid$ samples two nonces $(r_{\partyid,\eid},  s_{\partyid, \eid}) \randpick \Zp$,
+and then derives their corresponding commitments  $R_{\partyid,\eid} \gets g^{r_{\partyid, \eid}}$, $ S_{\partyid,\eid} \gets  g^{s_{\partyid,\eid}}$.
+They store $(r_{\partyid,\eid}, s_{\partyid,\eid})$ in their internal state,
+and output $(R_{\partyid,\eid}, S_{\partyid,\eid})$.
 
 \paragraph{Round Two.}
 All participants in a signing coalition $\coalition$ accept as input a message $\msg$,
-and a set of tuples $B = \{ (i, R_i, S_i)\}_{i \in \coalition}$,
+and a set of tuples $B = \{ (i, R_{i,\eid}, S_{i,\eid})\}_{i \in \coalition}$,
 containing the coalition of parties and their respective commitments.
 
 To begin,
 each party derives binding factors $\bindingfactor_i \gets \HashNon(i, B)$ for each party $i \in \coalition$.
-Then, each party derives $R \gets \prod_{i \in \coalition} R_i \cdot S_i^{\bindingfactor_i}$.
+Then, each party derives $R \gets \prod_{i \in \coalition} R_{i,\eid} \cdot  S_{i,\eid}^{\bindingfactor_i}$.
 Each party derives the challenge as $c \gets \HashSig(R, \pk, m)$,
 and then generates their signature share as
-$z_\partyid \gets r_\partyid + s_\partyid \cdot \bindingfactor_i + c \cdot \sk_i \cdot \lambda_i$,
+$z_\partyid \gets r_{\partyid,\eid} + s_{\partyid,\eid} \cdot \bindingfactor_i + c \cdot \sk_i \cdot \lambda_i$,
 where $\lambda_i$ is the Lagrange coefficient.
 Each party outputs $z_\partyid$ as their response,
-and deletes $(r_\partyid, s_\partyid)$.
+and deletes $(r_{\partyid,\eid}, s_{\partyid,\eid})$.
 
 
 \paragraph{Aggregation.}

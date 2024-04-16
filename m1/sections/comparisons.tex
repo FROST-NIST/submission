@@ -3,14 +3,49 @@
 \section{Choices and Comparisons}\label{section:comparisons}
 
 We here give a rationale for design decisions and the chosen system model, as well as an explanation of known advantages and limitations compared to other options and approaches.
-
-
-\subsection{Backwards Compatibility}\label{section:comparisons:compatibility}
-$\frost$ is backwards compatible with any protocol using the NIST standardised 
-Edwards-curve Digital Signature Algorithm (EdDSA) digital signature scheme \cite{EdDSA}.
+$\frost$ is backwards compatible with any protocol using the FIPS186-5 verifier. 
+This is the NIST standardised Edwards-curve Digital Signature Algorithm (EdDSA) digital signature scheme \cite{EdDSA}.
 EdDSA is a variant of Schnorr signature based on twisted Edwards curves.
-No changes to existing implementations of the signature verifier are required.
+No changes to existing implementations of the signature format or the verifier are required.
 The signing procedure, however, is changed to support threshold signers.
+
+We limit our comparisons to other concurrently secure threshold signatures that are also backwards compatible with FIPS186-5.
+This includes
+\begin{itemize}
+	\item $\mathsf{2SCHNORR}$ by Nicolosi, Krohn, Dodis, and Mazi\`eres \cite{NicolosiKDM03}
+	\item $\mathsf{CLASSICS}$ and $\mathsf{ZEROS}$ by Makriyannis \cite{Makriyannis22}
+	\item An unnamed protocol by Stinson and Strobl \cite{StinsonS01}
+	\item An unnamed protocol by Lindell \cite{Lindell22}
+	\item $\mathsf{ROAST}$ by Ruffing, Ronge, Jin, Schneider{-}Bensch, and Schr{\"{o}}der \cite{RuffingRJSS22}
+	\item $\mathsf{SPARKLE}$ by Crites, Komlo, and Maller \cite{CritesKM23}
+	\item $\mathsf{SPRINT}$ by Benhamouda, Halevi, Krawczyk, Rabin and Ma \cite{BenhamoudaHKRM23}
+	\item $\mathsf{ARTIC}$ by Komlo and Goldberg \cite{KomloG24}
+	\item $\mathsf{HARTS}$ by Bacho, Loss, Stern and Wagner \cite{BachoLSW24}
+\end{itemize}
+
+There exist some multi-signature schemes in which the signature format is compatible with FIPs186-5 but the signature verifier is incompatible.
+This includes
+\begin{itemize}
+	\item $\mathsf{MSDL}$ by Boneh, Drijvers, and Neven  \cite{BonehDN18}
+	\item $\mathsf{MuSig}$ by Maxwell, Poelstra, Seurin, and Wuille \cite{MaxwellPSW19}
+	\item $\mathsf{MuSig2}$ by Nick, Ruffing, and Seurin \cite{NickRS21}
+	\item $\mathsf{MuSigDN}$ by Nick, Ruffling, Seurin, and Wuille \cite{NickRSW20}
+\end{itemize}
+We also exclude these schemes from our comparisons in this section.
+
+\subsection{Concurrency}\label{section:comparisons:concurrency}
+$\frost$ as well as all other schemes in this comparison is concurrently secure.  
+There are no restrictions on the number of sessions a polynomial time adversary can have open at the same time.
+This is a strict requirement in the call for proposals.
+
+\subsection{Threshold Profiles}
+$\frost$ is a $k$-out-of-$n$ threshold signature that supports any $1 \leq k \leq n$.
+As in the Call for Proposals \cite{} we have: $k$ is the number of participants requires to sign; $f$ is the corruption proportion; and  $n$ is the number of parties.
+The number of parties is enormous ($n > 1024$) although smaller $n$ is also supported.
+The corruption proportion is dishonest majority ($f \geq \frac{n}{2}$) although smaller $f$ is also supported.
+$\frost$'s corruption threshold is equal to the participation-minus-1 threshold $f = k-1$.
+\mary{This may not be true for potential adaptive security reduction.}
+
 
 \subsection{Security Assumptions}\label{section:comparisons:security}
 $\frost$ is secure under the Algebraic-One-More-Discrete-Logarithm ($\aomdl$) problem \cite{NickRS21}.
@@ -21,26 +56,36 @@ It is strictly worse than the discrete-logarithm $(\dl)$ assumption under which 
 An adversary that solves $\dl$ can also solve $\aomdl$, but an adversary that solves $\aomdl$ cannot necessarily solve $\dl$.
 
 $\frost$ generates EdDSA signatures which cannot be post-quantum secure, because EdDSA depends on the discrete logarithm assumption.
-There is a known quantum attack against the discrete logarithm problem.
+There is a known quantum attack against the discrete logarithm problem \cite{Shor99}.
 
-\subsection{Concurrency}\label{section:comparisons:concurrency}
-$\frost$ is concurrently secure.  There are no restrictions on the number of sessions a polynomial time adversary can have open at the same time.
 
-\subsection{Idealised Models}\label{section:comparisons:idealised}
-The security reduction for $\frost$ is given in the programmable random oracle model.
+
+\subsection{Security Idealisation}\label{section:comparisons:idealisation}
+The security reduction for $\frost$ is given under a game-based security formulation in the programmable random oracle model.
 It is expected the idealised model for any threshold protocol producing EdDSA signatures must be stronger than the standard model.
-This is because there is no security reduction for EdDSA without any random oracle~\cite{PaillierV05,FischlinF13,FleischhackerJS19}
+This is because there is no security reduction for EdDSA without any random oracle~\cite{PaillierV05,FischlinF13,FleischhackerJS14}
 
-\subsection{Robustness}
+There is no known security reduction for $\frost$ in the universal composability model.
+To minimise the risks of composability attacks when $\frost$ is used in larger protocols,
+it is important to prefix the hash digests with appropriate domain separators.
+We fully specify the recommended domain separators in this document.
+
+\subsection{Liveness}
 $\frost$ is not  robust because there are no guarantees that any given session will terminate.
 If a session does not terminate then this does not effect the unforgeability security guarantees.
 $\frost$ does satisfy identifiable abort.  This means that if any party does not follow the honest signing protocol then they can be actively detected and removed from future iterations of the protocol.
 
 \mary{Say something about robust competitors.}
 
-\subsection{Adaptivity}\label{section:comparisons:adaptive}
-There is no adaptive security reduction for $\frost$.
-There is also no known adaptive attack against $\frost$.
+\subsection{Adversary}\label{section:comparisons:adversary}
+$\frost$ is actively secure.  An adversary can corrupt up to $f$ parties, controlling them to arbitrarily deviate from the prescribed multi-party protocol.
+There is no adaptive security reduction for $\frost$, i.e., we cannot prove security against an adversary that can decide which parties to corrupt after observing some of the protocol execution.
+However there is also no known adaptive attack against $\frost$.
+
+\mary{
+	Please help, I know little about this:
+	The proposed threshold schemes should be compatible with modular subprotocols / mechanisms for proactive (and reactive) recovery, which attempt to recover possibly corrupted parties back to an uncorrupted state. This is especially important to better handle a persistent mobile adversary that continuously attempts to corrupt more parties. With respect to refreshing secret shares, the solutions can be based on a modularized phase of secret-resharing (see T6), while also specifying the needed conditions (e.g., requirement of some initial/final agreement by a qualified quorum) for its integration.
+}
 
 There exist $3$ round schemes that provably fully adaptive \cite{} in the algebraic group model with non-programmable random oracles.  However there is no static or adaptive security reduction of $\frost$ in this model.  
 
@@ -53,21 +98,40 @@ Currently there is no known efficient concurrently secure $2$-round threshold si
 We do not know if this is fundamental or not.  However, there are efficient concurrently secure $3$-round threshold signature schemes \cite{}.
 The $3$ round schemes require the message to be fixed in the first or second round of the protocol.
 
-
-
 \subsection{Communication Complexity}
 
 \subsection{State Management and Storage Requirements}
+$\frost$ requires state management to ensure that:
+(1) secret randomness from the first round is available to the signer in the second round;
+(2) nonces from the first round are not used twice.
+If the secret randomness from the first round is lost then the signer will not be able to take part in the second round.
+If the nonces from the first round are used twice then an adversary can recover the signers partial secret key.
+Thus the signer will be compromised.
 
-\subsection{Network Requirements}
+Unlike in EdDSA signatures it is important that nonces are not generated using deterministic randomness to prevent nonces from the first round being used twice.
 
-\subsection{Composability}
-There is no known security reduction for $\frost$ in the universal composability model.
-To minimise the risks of composability attacks when $\frost$ is used in larger protocols,
-it is important to prefix the hash digests with appropriate domain separators.
-We fully specify the recommended domain separators in this document.
+As a two round scheme $\frost$ has lower state management and storage requirements than many other threshold signatures.
+There are no single round threshold signatures that product EdDSA signatures.
+There are single round threshold signatures that produce BLS signatures, but these require pairings and are not standardised by NIST.
+Unlike $3$ round alternatives ........
+
+
+\subsection{Distributed Systems and Communication}
+
+
 
 \subsection{Key Generation}\label{section:comparisons:keygeneration}
 For simplicity we specify $\frost$ assuming a trusted setup procedure, where a single trusted user generates all key shares.
 For many applications such as backups this suffices.
 However  $\frost$ can be instantiated with any simulatable distributed key generation \cite{}.
+
+
+\begin{table}
+	\centering
+	\begin{tabular}{c c c c c}
+		\toprule
+		Scheme & Threshold profile & Assumptions & Idealisation & \\ \midrule
+		& & & & \\ \bottomrule
+	\end{tabular}
+	\caption{Table of comparisons with other schemes that are backwards compatible with the signature format and verifier of FIPS186-5. }
+\end{table}

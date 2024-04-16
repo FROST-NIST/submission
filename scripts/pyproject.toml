@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 
 [tool.poetry.scripts]
+complexity = "scripts.complexity:main"
 
 [build-system]
 requires = ["poetry-core"]

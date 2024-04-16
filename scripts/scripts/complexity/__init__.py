@@ -2,8 +2,9 @@
 
 from argparse import ArgumentParser
 
+from . import frost
 from .allocator import MemoryAllocator
-from .group import Element, Scalar
+from .group import G, Element, Scalar, Encoding
 
 class GroupInfo:
     def __init__(self, mem, max_participants):
@@ -26,6 +27,63 @@ class Participant:
         self.i.free()
         self.sk_i.free()
         self.group_info.free()
+
+    def round_1(self):
+        (nonces, comms) = frost.commit(self.mem, self.sk_i)
+
+        # The outputs `nonce` and `comm` from participant `P_i` are both stored locally
+        # and kept for use in the second round.
+        self.nonces = nonces
+        self.comms = comms
+
+        # [T]he public output `comm` is sent to the Coordinator.
+        return (G.SerializeElement(self.mem, self.comms[0]), G.SerializeElement(self.mem, self.comms[1]))
+
+    def round_2(self, msg, commitment_list_enc):
+        # TODO: Computational complexity of input validation.
+        commitment_list = []
+        for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc:
+            commitment_list.append((
+                G.DeserializeScalar(self.mem, i),
+                G.DeserializeElement(self.mem, hiding_nonce_commitment_i),
+                G.DeserializeElement(self.mem, binding_nonce_commitment_i),
+            ))
+            i.free()
+            hiding_nonce_commitment_i.free()
+            binding_nonce_commitment_i.free()
+
+        # Upon receipt and successful input validation, each Signer then runs the
+        # following procedure to produce its own signature share.
+        sig_share = frost.sign(
+            self.mem,
+            self.i,
+            self.sk_i,
+            self.group_info.pk,
+            self.nonces,
+            msg,
+            commitment_list,
+        )
+        for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list:
+            i.free()
+            hiding_nonce_commitment_i.free()
+            binding_nonce_commitment_i.free()
+
+        # Each participant then sends these shares back to the Coordinator.
+        sig_share_enc = G.SerializeScalar(self.mem, sig_share)
+        sig_share.free()
+
+        # Each participant MUST delete the nonce and corresponding commitment after
+        # completing sign, and MUST NOT use the nonce as input more than once to sign.
+        (hiding_nonce, binding_nonce) = self.nonces
+        hiding_nonce.free()
+        binding_nonce.free()
+        self.nonces = None
+        (hiding_nonce_commitment, binding_nonce_commitment) = self.comms
+        hiding_nonce_commitment.free()
+        binding_nonce_commitment.free()
+        self.comms = None
+
+        return sig_share_enc
 
 # Centralised protocol runner.
 #
@@ -52,6 +110,19 @@ class Coordinator:
         print('Selecting', num_participants, 'participants')
         self.participants = self.key_holders[:num_participants]
 
+    def send_encoding(self, p, buf, transient=False):
+        # TODO: Track network usage.
+        ret = Encoding(p.mem, buf.name(), buf.size, buf.value())
+        if transient:
+            buf.free()
+        return ret
+
+    def receive_encoding(self, buf):
+        # TODO: Track network usage.
+        ret = Encoding(self.mem, buf.name(), buf.size, buf.value())
+        buf.free()
+        return ret
+
     def run(self):
         # Print the current memory usage.
         print('Coordinator: {}'.format(self.mem))
@@ -59,6 +130,74 @@ class Coordinator:
             print('Participant {}: {}'.format(p.i.value(), p.mem))
 
         # Finished protocol run; free the participants and group info.
+        print('Running round 1')
+        commitment_list_enc = []
+        for p in self.participants:
+            (hiding_nonce_commitment_i, binding_nonce_commitment_i) = p.round_1()
+            commitment_list_enc.append((
+                # TODO: Decide how to model the Coordinator's handling of identifiers.
+                p.i,
+                self.receive_encoding(hiding_nonce_commitment_i),
+                self.receive_encoding(binding_nonce_commitment_i),
+            ))
+
+        # Print the current memory usage.
+        print('Coordinator: {}'.format(self.mem))
+        for p in self.participants:
+            print('Participant {}: {}'.format(p.i.value(), p.mem))
+
+        print('Running round 2')
+        msg = '' # TODO Model memory usage?
+        sig_shares = []
+        for p in self.participants:
+            commitment_list_i = [(
+                self.send_encoding(p, G.SerializeScalar(self.mem, i), True),
+                self.send_encoding(p, hiding_nonce_commitment_i),
+                self.send_encoding(p, binding_nonce_commitment_i),
+            ) for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc]
+            sig_share_i = self.receive_encoding(p.round_2(msg, commitment_list_i))
+            # Before aggregating, the Coordinator MUST validate each signature share using
+            # `DeserializeScalar`.
+            sig_shares.append(G.DeserializeScalar(self.mem, sig_share_i))
+            sig_share_i.free()
+
+        # Print the current memory usage.
+        print('Coordinator: {}'.format(self.mem))
+        for p in self.participants:
+            print('Participant {}: {}'.format(p.i.value(), p.mem))
+
+        print('Aggregating signature')
+        # The spec does not require the Coordinator to validate the commitments received
+        # from participants before broadcasting them in round 2, so we don't bother
+        # deserializing them until they are needed here.
+        commitment_list = []
+        for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc:
+            commitment_list.append((
+                i,
+                G.DeserializeElement(self.mem, hiding_nonce_commitment_i),
+                G.DeserializeElement(self.mem, binding_nonce_commitment_i),
+            ))
+            # `i` is a reference here, don't free it.
+            hiding_nonce_commitment_i.free()
+            binding_nonce_commitment_i.free()
+        sig = frost.aggregate(self.mem, commitment_list, msg, self.group_info.pk, sig_shares)
+
+        # Assume successful aggregation; free the inputs.
+        for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list:
+            # `i` is a reference here, don't free it.
+            hiding_nonce_commitment_i.free()
+            binding_nonce_commitment_i.free()
+        for sig_share_i in sig_shares:
+            sig_share_i.free()
+
+        # Print the current memory usage.
+        print('Coordinator: {}'.format(self.mem))
+        for p in self.participants:
+            print('Participant {}: {}'.format(p.i.value(), p.mem))
+
+        # Finished protocol run; free the signature, participants, and group info.
+        sig[0].free()
+        sig[1].free()
         for p in self.key_holders:
             p.free()
         self.group_info.free()

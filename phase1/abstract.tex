@@ -2,22 +2,25 @@
 
 \subsection{Primitive to be Thresholdized}
 
-In this work,
-we describe FROST,
-a two-round threshold signature scheme that thresholdizes the EdDSA signature scheme.
-In particular,
+In this work, we describe FROST, a two-round threshold signature
+scheme that thresholdizes the EdDSA signature scheme. In particular,
 we will provide a Cat1 submission for subcategory C1.1 EdDSA signing.
 
 \subsection{Outline of Approach}
 
-FROST (Flexible Round-Optimized Schnorr Threshold Signatures)~\cite{KomloG20,BellareCKMTZ22} addresses the need for efficient threshold EdDSA signing operations while improving upon the state of the art to ensure strong security properties \emph{without} limiting the parallelism of signing operations.
-FROST achieves improved efficiency in the optimistic case that no participant misbehaves.
-However, in the case where a misbehaving participant contributes malformed values during the protocol,
-honest parties can identify and exclude the misbehaving participant, and re-run the protocol.
+FROST (Flexible Round-Optimized Schnorr Threshold Signatures)~\cite{KomloG20,BellareCKMTZ22}
+addresses the need for efficient threshold EdDSA signing operations while
+improving upon the state of the art to ensure strong security properties
+\emph{without} limiting the parallelism of signing operations.
+FROST achieves improved efficiency in the optimistic case that no
+participant misbehaves. However, in the case where a misbehaving participant 
+contributes malformed values during the protocol, honest parties can identify
+and exclude the misbehaving participant, and re-run the protocol.
 
 Here, we describe the (unoptimized) two-round version of the FROST.
-However, implementations may wish to perform the first round in a batched setting,
-allowing the scheme to be used in a manner where online signing requires only a single round of communication.
+However, implementations may wish to perform the first round in a
+batched setting, allowing the scheme to be used in a manner where
+online signing requires only a single round of communication.
 
 \subsubsection{System Model.}
 We assume the following when describing FROST:

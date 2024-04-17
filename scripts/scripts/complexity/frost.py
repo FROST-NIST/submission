@@ -2,9 +2,6 @@ import progressbar
 
 from .group import G, Scalar
 
-# TODO: Make configurable.
-H_LEN = 64
-
 # 4.1 Nonce generation
 def nonce_generate(mem, secret, nonce_name):
     random_bytes = mem.alloc_bytes('random_bytes', 32)
@@ -70,17 +67,17 @@ def binding_factor_for_participant(binding_factor_list, identifier):
 def compute_binding_factors(mem, group_public_key, commitment_list, msg):
     group_public_key_enc = G.SerializeElement(mem, group_public_key)
     # Hashed to a fixed-length.
-    msg_hash = mem.alloc_bytes('H4(msg)', H_LEN)
+    msg_hash = mem.alloc_bytes('H4(msg)', G.H_LEN)
     # Hashed to a fixed-length.
     encoded_group_commitment_list = encode_group_commitment_list(mem, commitment_list)
-    encoded_commitment_hash = mem.alloc_bytes('H5(encoded_group_commitment_list)', H_LEN)
+    encoded_commitment_hash = mem.alloc_bytes('H5(encoded_group_commitment_list)', G.H_LEN)
     encoded_group_commitment_list.free()
 
     # The encoding of the group public key is a fixed length within a ciphersuite.
     # rho_input_prefix = group_public_key_enc || msg_hash || encoded_commitment_hash
     rho_input_prefix = mem.alloc_bytes(
         'rho_input_prefix',
-        group_public_key_enc.size + H_LEN + H_LEN,
+        group_public_key_enc.size + G.H_LEN + G.H_LEN,
     )
     group_public_key_enc.free()
     msg_hash.free()

@@ -1,9 +1,5 @@
 # A prime-order group `G`.
 class G:
-    # TODO: Make these configurable.
-    Ne = 32
-    Ns = 32
-
     @classmethod
     def Identity(cls, mem):
         return Element(mem, 'I')

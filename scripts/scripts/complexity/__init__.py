@@ -211,13 +211,26 @@ def main():
     parser.add_argument('min_participants', type=int)
     parser.add_argument('max_participants', type=int)
     parser.add_argument('num_participants', type=int)
+    parser.add_argument('security_strength', type=int, choices=[128, 224])
     args = parser.parse_args()
 
     # Current assumptions:
-    # - Fields and scalars are both ~256 bits.
     # - Elements are curve points stored in projective (X, Y, T) coordinates.
     # - Scalars are stored as packed limbs in memory.
-    mem_cost_model = allocator.CostModel(96, 32)
+    if args.security_strength == 128:
+        # FROST(Ed25519, SHA-512)
+        G.Ne = 32
+        G.Ns = 32
+        G.H_LEN = 64
+        mem_cost_model = allocator.CostModel(G.Ne * 3, G.Ns)
+    elif args.security_strength == 224:
+        # FROST(Ed448, SHAKE256)
+        G.Ne = 57
+        G.Ns = 57
+        G.H_LEN = 114
+        mem_cost_model = allocator.CostModel(G.Ne * 3, G.Ns)
+    else:
+        assert False
 
     coord = Coordinator(
         args.min_participants,

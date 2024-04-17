@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 from . import frost
 from .allocator import MemoryAllocator
+from .communication import Traffic
 from .group import G, Element, Scalar, Encoding
 from .processor import Processor
 
@@ -20,6 +21,7 @@ class Participant:
     def __init__(self, i, group_info, mem_cost_model):
         self.mem = MemoryAllocator(mem_cost_model)
         self.cpu = Processor(self.mem)
+        self.traffic = {}
 
         self.i = Scalar(self.mem, 'i', i)
         self.sk_i = Scalar(self.mem, 'sk_i')
@@ -29,6 +31,11 @@ class Participant:
         self.i.free()
         self.sk_i.free()
         self.group_info.free()
+
+    def round_traffic(self):
+        if self.mem.round not in self.traffic:
+            self.traffic[self.mem.round] = Traffic()
+        return self.traffic[self.mem.round]
 
     def round_1(self):
         (nonces, comms) = frost.commit(self.cpu, self.sk_i)
@@ -119,14 +126,14 @@ class Coordinator:
             p.mem.set_round(round)
 
     def send_encoding(self, p, buf, transient=False):
-        # TODO: Track network usage.
+        p.round_traffic().receive(buf.size)
         ret = Encoding(p.mem, buf.name(), buf.size, buf.value())
         if transient:
             buf.free()
         return ret
 
-    def receive_encoding(self, buf):
-        # TODO: Track network usage.
+    def receive_encoding(self, p, buf):
+        p.round_traffic().send(buf.size)
         ret = Encoding(self.mem, buf.name(), buf.size, buf.value())
         buf.free()
         return ret
@@ -150,8 +157,8 @@ class Coordinator:
             commitment_list_enc.append((
                 # TODO: Decide how to model the Coordinator's handling of identifiers.
                 p.i,
-                self.receive_encoding(hiding_nonce_commitment_i),
-                self.receive_encoding(binding_nonce_commitment_i),
+                self.receive_encoding(p, hiding_nonce_commitment_i),
+                self.receive_encoding(p, binding_nonce_commitment_i),
             ))
 
         # Print the current memory and computational usage.
@@ -174,7 +181,7 @@ class Coordinator:
                 self.send_encoding(p, hiding_nonce_commitment_i),
                 self.send_encoding(p, binding_nonce_commitment_i),
             ) for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc]
-            sig_share_i = self.receive_encoding(p.round_2(msg, commitment_list_i))
+            sig_share_i = self.receive_encoding(p, p.round_2(msg, commitment_list_i))
             # Before aggregating, the Coordinator MUST validate each signature share using
             # `DeserializeScalar`.
             sig_shares.append(G.DeserializeScalar(self.mem, sig_share_i))
@@ -222,6 +229,7 @@ class Coordinator:
             print('Participant {}:'.format(p.i.value()))
             print('  {}'.format(p.mem))
             print('  {}'.format(p.cpu))
+            print('  {}'.format(p.traffic))
 
         # Finished protocol run; free the signature, participants, and group info.
         sig[0].free()

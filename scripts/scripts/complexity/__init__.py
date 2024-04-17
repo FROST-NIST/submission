@@ -17,8 +17,8 @@ class GroupInfo:
         [pk_i.free() for pk_i in self.pk_i]
 
 class Participant:
-    def __init__(self, i, group_info):
-        self.mem = MemoryAllocator()
+    def __init__(self, i, group_info, mem_cost_model):
+        self.mem = MemoryAllocator(mem_cost_model)
         self.cpu = Processor(self.mem)
 
         self.i = Scalar(self.mem, 'i', i)
@@ -91,11 +91,11 @@ class Participant:
 #
 # - Handles communication between nodes
 class Coordinator:
-    def __init__(self, min_participants, num_participants, max_participants):
+    def __init__(self, min_participants, num_participants, max_participants, mem_cost_model):
         assert min_participants <= num_participants
         assert num_participants <= max_participants
 
-        self.mem = MemoryAllocator()
+        self.mem = MemoryAllocator(mem_cost_model)
         self.cpu = Processor(self.mem)
         self.key_holders = []
 
@@ -108,10 +108,15 @@ class Coordinator:
         print('Creating', max_participants, 'key holders')
         for i in range(1, max_participants + 1):
             # TODO: Does coordinator need to store `i` in memory as a `Scalar`?
-            self.key_holders.append(Participant(i, group_info))
+            self.key_holders.append(Participant(i, group_info, mem_cost_model))
 
         print('Selecting', num_participants, 'participants')
         self.participants = self.key_holders[:num_participants]
+
+    def set_round(self, round):
+        self.mem.set_round(round)
+        for p in self.participants:
+            p.mem.set_round(round)
 
     def send_encoding(self, p, buf, transient=False):
         # TODO: Track network usage.
@@ -138,6 +143,7 @@ class Coordinator:
 
         print()
         print('Running round 1')
+        self.set_round(1)
         commitment_list_enc = []
         for p in self.participants:
             (hiding_nonce_commitment_i, binding_nonce_commitment_i) = p.round_1()
@@ -159,6 +165,7 @@ class Coordinator:
 
         print()
         print('Running round 2')
+        self.set_round(2)
         msg = '' # TODO Model memory usage?
         sig_shares = []
         for p in self.participants:
@@ -232,9 +239,16 @@ def main():
     parser.add_argument('num_participants', type=int)
     args = parser.parse_args()
 
+    # Current assumptions:
+    # - Fields and scalars are both ~256 bits.
+    # - Elements are curve points stored in projective (X, Y, T) coordinates.
+    # - Scalars are stored as packed limbs in memory.
+    mem_cost_model = allocator.CostModel(96, 32)
+
     coord = Coordinator(
         args.min_participants,
         args.num_participants,
         args.max_participants,
+        mem_cost_model,
     )
     coord.run()

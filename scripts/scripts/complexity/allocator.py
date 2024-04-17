@@ -1,3 +1,17 @@
+from copy import deepcopy
+
+class CostModel:
+    def __init__(self, element_bytes, scalar_bytes):
+        self.element_bytes = element_bytes
+        self.scalar_bytes = scalar_bytes
+
+    def count(self, stored):
+        return (
+            (stored.elements * self.element_bytes) +
+            (stored.scalars * self.scalar_bytes) +
+            stored.bytes
+        )
+
 class Stored:
     def __init__(self):
         self.bytes = 0
@@ -10,6 +24,9 @@ class Stored:
             self.elements,
             self.scalars,
         )
+
+    def is_greater_than(self, other, cost_model):
+        return cost_model.count(self) > cost_model.count(other)
 
     def alloc_bytes(self, size):
         self.bytes += size
@@ -33,15 +50,31 @@ class Stored:
 #
 # - Per node
 # - Allocates and frees points, scalars, etc.
+# - Tracks high water mark.
+#   - Per round (and thus overall).
 class MemoryAllocator:
-    def __init__(self):
+    def __init__(self, cost_model):
+        self.cost_model = cost_model
+        self.round = 0
         self.stored = Stored()
+        self.max_stored = {}
 
     def __str__(self):
-        return 'Current: {}'.format(self.stored)
+        return 'Current: {}\n  Max: {}'.format(self.stored, self.max_stored)
+
+    def set_round(self, round):
+        self.round = round
+
+    def update_max_stored(self):
+        if self.round in self.max_stored:
+            if self.stored.is_greater_than(self.max_stored[self.round], self.cost_model):
+                self.max_stored[self.round] = deepcopy(self.stored)
+        else:
+            self.max_stored[self.round] = deepcopy(self.stored)
 
     def alloc_bytes(self, name, size, value=None):
         self.stored.alloc_bytes(size)
+        self.update_max_stored()
         return Allocation(lambda: self.free_bytes(size), name, value)
 
     def free_bytes(self, size):
@@ -49,6 +82,7 @@ class MemoryAllocator:
 
     def alloc_element(self, name):
         self.stored.alloc_element()
+        self.update_max_stored()
         return Allocation(self.free_element, name, None)
 
     def free_element(self):
@@ -56,6 +90,7 @@ class MemoryAllocator:
 
     def alloc_scalar(self, name, value=None):
         self.stored.alloc_scalar()
+        self.update_max_stored()
         return Allocation(self.free_scalar, name, value)
 
     def free_scalar(self):

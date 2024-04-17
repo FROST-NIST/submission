@@ -9,14 +9,12 @@ class G:
         return Element(mem, 'I')
 
     @classmethod
-    def ScalarMult(cls, mem, A, k):
-        # TODO: Computational cost.
-        return Element(mem, '{}^{}'.format(A.name(), k.name()))
+    def ScalarMult(cls, cpu, A, k):
+        return cpu.element_scalar_mul(A, k)
 
     @classmethod
-    def ScalarBaseMult(cls, mem, k):
-        # TODO: Computational cost.
-        return Element(mem, 'B^{}'.format(k.name()))
+    def ScalarBaseMult(cls, cpu, k):
+        return cpu.element_scalar_base_mul(k)
 
     @classmethod
     def SerializeElement(cls, mem, A):
@@ -43,16 +41,11 @@ class Element:
     def name(self):
         return self.allocation.name
 
+    def update(self, name):
+        self.allocation.update(name)
+
     def free(self):
         self.allocation.free()
-
-    def __add__(self, other):
-        return Element(self.mem, '({}) + ({})'.format(self.name(), other.name()))
-
-    def __iadd__(self, other):
-        res = self + other
-        self.free()
-        return res
 
 # An integer modulo the prime order `p` of group `G`.
 class Scalar:
@@ -66,6 +59,9 @@ class Scalar:
     def value(self):
         return self.allocation.value()
 
+    def update(self, name, value=None):
+        self.allocation.update(name, value)
+
     def free(self):
         self.allocation.free()
 
@@ -78,65 +74,6 @@ class Scalar:
     def __eq__(self, other):
         # Only define equality for scalars with known values (namely identifiers).
         return self.value() and other.value() and self.value() == other.value()
-
-    def __add__(self, other):
-        if self.value() and other.value():
-            res = self.value() + other.value()
-        else:
-            res = None
-        return Scalar(
-            self.mem,
-            '({}) + ({})'.format(self.name(), other.name()),
-            res,
-        )
-
-    def __iadd__(self, other):
-        res = self + other
-        self.free()
-        return res
-
-    def __sub__(self, other):
-        if self.value() and other.value():
-            res = self.value() - other.value()
-        else:
-            res = None
-        return Scalar(
-            self.mem,
-            '({}) - ({})'.format(self.name(), other.name()),
-            res,
-        )
-
-    def __isub__(self, other):
-        res = self - other
-        self.free()
-        return res
-
-    def __mul__(self, other):
-        if self.value() and other.value():
-            res = self.value() * other.value()
-        else:
-            res = None
-        return Scalar(
-            self.mem,
-            '({})*({})'.format(self.name(), other.name()),
-            res,
-        )
-
-    def __imul__(self, other):
-        res = self * other
-        self.free()
-        return res
-
-    def __truediv__(self, other):
-        if self.value() and other.value():
-            res = self.value() / other.value()
-        else:
-            res = None
-        return Scalar(
-            self.mem,
-            '({})/({})'.format(self.name(), other.name()),
-            res,
-        )
 
 # A byte encoding of an element or scalar.
 class Encoding:

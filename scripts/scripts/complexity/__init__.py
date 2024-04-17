@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from . import frost
 from .allocator import MemoryAllocator
 from .group import G, Element, Scalar, Encoding
+from .processor import Processor
 
 class GroupInfo:
     def __init__(self, mem, max_participants):
@@ -18,6 +19,7 @@ class GroupInfo:
 class Participant:
     def __init__(self, i, group_info):
         self.mem = MemoryAllocator()
+        self.cpu = Processor(self.mem)
 
         self.i = Scalar(self.mem, 'i', i)
         self.sk_i = Scalar(self.mem, 'sk_i')
@@ -29,7 +31,7 @@ class Participant:
         self.group_info.free()
 
     def round_1(self):
-        (nonces, comms) = frost.commit(self.mem, self.sk_i)
+        (nonces, comms) = frost.commit(self.cpu, self.sk_i)
 
         # The outputs `nonce` and `comm` from participant `P_i` are both stored locally
         # and kept for use in the second round.
@@ -55,7 +57,7 @@ class Participant:
         # Upon receipt and successful input validation, each Signer then runs the
         # following procedure to produce its own signature share.
         sig_share = frost.sign(
-            self.mem,
+            self.cpu,
             self.i,
             self.sk_i,
             self.group_info.pk,
@@ -94,6 +96,7 @@ class Coordinator:
         assert num_participants <= max_participants
 
         self.mem = MemoryAllocator()
+        self.cpu = Processor(self.mem)
         self.key_holders = []
 
         # The Coordinator and each participant are additionally configured with common
@@ -124,12 +127,16 @@ class Coordinator:
         return ret
 
     def run(self):
-        # Print the current memory usage.
-        print('Coordinator: {}'.format(self.mem))
+        # Print the current memory and computational usage.
+        print('Coordinator:')
+        print('  {}'.format(self.mem))
+        print('  {}'.format(self.cpu))
         for p in self.participants:
-            print('Participant {}: {}'.format(p.i.value(), p.mem))
+            print('Participant {}:'.format(p.i.value()))
+            print('  {}'.format(p.mem))
+            print('  {}'.format(p.cpu))
 
-        # Finished protocol run; free the participants and group info.
+        print()
         print('Running round 1')
         commitment_list_enc = []
         for p in self.participants:
@@ -141,11 +148,16 @@ class Coordinator:
                 self.receive_encoding(binding_nonce_commitment_i),
             ))
 
-        # Print the current memory usage.
-        print('Coordinator: {}'.format(self.mem))
+        # Print the current memory and computational usage.
+        print('Coordinator:')
+        print('  {}'.format(self.mem))
+        print('  {}'.format(self.cpu))
         for p in self.participants:
-            print('Participant {}: {}'.format(p.i.value(), p.mem))
+            print('Participant {}:'.format(p.i.value()))
+            print('  {}'.format(p.mem))
+            print('  {}'.format(p.cpu))
 
+        print()
         print('Running round 2')
         msg = '' # TODO Model memory usage?
         sig_shares = []
@@ -161,11 +173,16 @@ class Coordinator:
             sig_shares.append(G.DeserializeScalar(self.mem, sig_share_i))
             sig_share_i.free()
 
-        # Print the current memory usage.
-        print('Coordinator: {}'.format(self.mem))
+        # Print the current memory and computational usage.
+        print('Coordinator:')
+        print('  {}'.format(self.mem))
+        print('  {}'.format(self.cpu))
         for p in self.participants:
-            print('Participant {}: {}'.format(p.i.value(), p.mem))
+            print('Participant {}:'.format(p.i.value()))
+            print('  {}'.format(p.mem))
+            print('  {}'.format(p.cpu))
 
+        print()
         print('Aggregating signature')
         # The spec does not require the Coordinator to validate the commitments received
         # from participants before broadcasting them in round 2, so we don't bother
@@ -180,7 +197,7 @@ class Coordinator:
             # `i` is a reference here, don't free it.
             hiding_nonce_commitment_i.free()
             binding_nonce_commitment_i.free()
-        sig = frost.aggregate(self.mem, commitment_list, msg, self.group_info.pk, sig_shares)
+        sig = frost.aggregate(self.cpu, commitment_list, msg, self.group_info.pk, sig_shares)
 
         # Assume successful aggregation; free the inputs.
         for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list:
@@ -190,10 +207,14 @@ class Coordinator:
         for sig_share_i in sig_shares:
             sig_share_i.free()
 
-        # Print the current memory usage.
-        print('Coordinator: {}'.format(self.mem))
+        # Print the current memory and computational usage.
+        print('Coordinator:')
+        print('  {}'.format(self.mem))
+        print('  {}'.format(self.cpu))
         for p in self.participants:
-            print('Participant {}: {}'.format(p.i.value(), p.mem))
+            print('Participant {}:'.format(p.i.value()))
+            print('  {}'.format(p.mem))
+            print('  {}'.format(p.cpu))
 
         # Finished protocol run; free the signature, participants, and group info.
         sig[0].free()

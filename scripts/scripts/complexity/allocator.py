@@ -81,6 +81,11 @@ class Allocation:
         assert self.live, 'Use-after-free of ' + self.name
         return self._value
 
+    def update(self, name, value=None):
+        assert self.live, 'Use-after-free of ' + self.name
+        self.name = name
+        self._value = value
+
     def free(self):
         assert self.live, 'Double-free of ' + self.name
         self.dealloc()

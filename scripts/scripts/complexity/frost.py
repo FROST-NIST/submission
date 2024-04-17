@@ -14,23 +14,23 @@ def nonce_generate(mem, secret, nonce_name):
     return nonce
 
 # 4.2 Polynomials
-def derive_interpolating_value(mem, L, x_i):
+def derive_interpolating_value(cpu, L, x_i):
     if x_i not in L:
         raise "invalid parameters"
     # for x_j in L:
     #     if count(x_j, L) > 1:
     #         raise "invalid parameters"
 
-    numerator = Scalar(mem, 'numerator', 1)
-    denominator = Scalar(mem, 'denominator', 1)
+    numerator = Scalar(cpu.mem, 'numerator', 1)
+    denominator = Scalar(cpu.mem, 'denominator', 1)
     for x_j in L:
         if x_j == x_i: continue
-        numerator *= x_j
-        diff = x_j - x_i
-        denominator *= diff
+        cpu.scalar_mul_assign(numerator, x_j)
+        diff = cpu.scalar_sub(x_j, x_i)
+        cpu.scalar_mul_assign(denominator, diff)
         diff.free()
 
-    value = numerator / denominator
+    value = cpu.scalar_div(numerator, denominator)
     numerator.free()
     denominator.free()
     return value
@@ -96,14 +96,14 @@ def compute_binding_factors(mem, group_public_key, commitment_list, msg):
     return binding_factor_list
 
 # 4.5 Group Commitment Computation
-def compute_group_commitment(mem, commitment_list, binding_factor_list):
-    group_commitment = G.Identity(mem)
+def compute_group_commitment(cpu, commitment_list, binding_factor_list):
+    group_commitment = G.Identity(cpu.mem)
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
         binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
-        binding_nonce = G.ScalarMult(mem, binding_nonce_commitment, binding_factor)
-        hiding_plus_binding = hiding_nonce_commitment + binding_nonce
+        binding_nonce = G.ScalarMult(cpu, binding_nonce_commitment, binding_factor)
+        hiding_plus_binding = cpu.element_add(hiding_nonce_commitment, binding_nonce)
         binding_nonce.free()
-        group_commitment += hiding_plus_binding
+        cpu.element_add_assign(group_commitment, hiding_plus_binding)
         hiding_plus_binding.free()
     return group_commitment
 
@@ -118,41 +118,41 @@ def compute_challenge(mem, group_commitment, group_public_key, msg):
     return challenge
 
 # 5.1 Round One - Commitment
-def commit(mem, sk_i):
-    hiding_nonce = nonce_generate(mem, sk_i, 'hiding_nonce')
-    binding_nonce = nonce_generate(mem, sk_i, 'binding_nonce')
-    hiding_nonce_commitment = G.ScalarBaseMult(mem, hiding_nonce)
-    binding_nonce_commitment = G.ScalarBaseMult(mem, binding_nonce)
+def commit(cpu, sk_i):
+    hiding_nonce = nonce_generate(cpu.mem, sk_i, 'hiding_nonce')
+    binding_nonce = nonce_generate(cpu.mem, sk_i, 'binding_nonce')
+    hiding_nonce_commitment = G.ScalarBaseMult(cpu, hiding_nonce)
+    binding_nonce_commitment = G.ScalarBaseMult(cpu, binding_nonce)
     nonces = (hiding_nonce, binding_nonce)
     comms = (hiding_nonce_commitment, binding_nonce_commitment)
     return (nonces, comms)
 
 # 5.2 Round Two - Signature Share Generation
-def sign(mem, identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
+def sign(cpu, identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
     # Compute the binding factor(s)
-    binding_factor_list = compute_binding_factors(mem, group_public_key, commitment_list, msg)
+    binding_factor_list = compute_binding_factors(cpu.mem, group_public_key, commitment_list, msg)
     binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
 
     # Compute the group commitment
-    group_commitment = compute_group_commitment(mem, commitment_list, binding_factor_list)
+    group_commitment = compute_group_commitment(cpu, commitment_list, binding_factor_list)
 
     # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_interpolating_value(mem, participant_list, identifier)
+    lambda_i = derive_interpolating_value(cpu, participant_list, identifier)
 
     # Compute the per-message challenge
-    challenge = compute_challenge(mem, group_commitment, group_public_key, msg)
+    challenge = compute_challenge(cpu.mem, group_commitment, group_public_key, msg)
     group_commitment.free()
 
     # Compute the signature share
     (hiding_nonce, binding_nonce) = nonce_i
     # sig_share = hiding_nonce + (binding_nonce * binding_factor) + (lambda_i * sk_i * challenge)
-    nonce_part = binding_nonce * binding_factor
-    nonce_part += hiding_nonce
-    challenge_part = lambda_i * sk_i
-    challenge_part *= challenge
+    nonce_part = cpu.scalar_mul(binding_nonce, binding_factor)
+    cpu.scalar_add_assign(nonce_part, hiding_nonce)
+    challenge_part = cpu.scalar_mul(lambda_i, sk_i)
+    cpu.scalar_mul_assign(challenge_part, challenge)
     challenge.free()
-    sig_share = nonce_part + challenge_part
+    sig_share = cpu.scalar_add(nonce_part, challenge_part)
     nonce_part.free()
     challenge_part.free()
     lambda_i.free() # TODO: Model caching of this?
@@ -168,18 +168,18 @@ def sign(mem, identifier, sk_i, group_public_key, nonce_i, msg, commitment_list)
     return sig_share
 
 # 5.3 Signature Share Aggregation
-def aggregate(mem, commitment_list, msg, group_public_key, sig_shares):
+def aggregate(cpu, commitment_list, msg, group_public_key, sig_shares):
     # Compute the binding factors
-    binding_factor_list = compute_binding_factors(mem, group_public_key, commitment_list, msg)
+    binding_factor_list = compute_binding_factors(cpu.mem, group_public_key, commitment_list, msg)
 
     # Compute the group commitment
-    group_commitment = compute_group_commitment(mem, commitment_list, binding_factor_list)
+    group_commitment = compute_group_commitment(cpu, commitment_list, binding_factor_list)
     for (identifier, binding_factor) in binding_factor_list:
         # Per above, `identifier` is a reference, don't free here.
         binding_factor.free()
 
     # Compute aggregated signature
-    z = Scalar(mem, 'z', 0)
+    z = Scalar(cpu.mem, 'z', 0)
     for z_i in sig_shares:
-        z += z_i
+        cpu.scalar_add_assign(z, z_i)
     return (group_commitment, z)

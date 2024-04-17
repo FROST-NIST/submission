@@ -1,6 +1,7 @@
 # Analytical estimator of complexity.
 
 from argparse import ArgumentParser
+import progressbar
 
 from . import frost
 from .allocator import MemoryAllocator
@@ -114,7 +115,7 @@ class Coordinator:
         self.group_info = group_info(self.mem)
 
         print('Creating', max_participants, 'key holders')
-        for i in range(1, max_participants + 1):
+        for i in progressbar.progressbar(range(1, max_participants + 1)):
             # TODO: Does coordinator need to store `i` in memory as a `Scalar`?
             self.key_holders.append(Participant(i, group_info, mem_cost_model))
 
@@ -143,7 +144,7 @@ class Coordinator:
         print('Running round 1')
         self.set_round(1)
         commitment_list_enc = []
-        for p in self.participants:
+        for p in progressbar.progressbar(self.participants):
             (hiding_nonce_commitment_i, binding_nonce_commitment_i) = p.round_1()
             commitment_list_enc.append((
                 # TODO: Decide how to model the Coordinator's handling of identifiers.
@@ -156,7 +157,7 @@ class Coordinator:
         self.set_round(2)
         msg = '' # TODO Model memory usage?
         sig_shares = []
-        for p in self.participants:
+        for p in progressbar.progressbar(self.participants):
             commitment_list_i = [(
                 self.send_encoding(p, G.SerializeScalar(self.mem, i), True),
                 self.send_encoding(p, hiding_nonce_commitment_i),

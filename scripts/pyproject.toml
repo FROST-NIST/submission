@@ -7,6 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+progressbar2 = "^4.4.2"
 
 [tool.poetry.scripts]
 complexity = "scripts.complexity:main"

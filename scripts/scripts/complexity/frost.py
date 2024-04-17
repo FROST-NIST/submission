@@ -1,3 +1,5 @@
+import progressbar
+
 from .group import G, Scalar
 
 # TODO: Make configurable.
@@ -180,6 +182,6 @@ def aggregate(cpu, commitment_list, msg, group_public_key, sig_shares):
 
     # Compute aggregated signature
     z = Scalar(cpu.mem, 'z', 0)
-    for z_i in sig_shares:
+    for z_i in progressbar.progressbar(sig_shares):
         cpu.scalar_add_assign(z, z_i)
     return (group_commitment, z)

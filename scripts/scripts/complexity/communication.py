@@ -10,6 +10,12 @@ class Traffic:
             self.upload,
         )
 
+    def __add__(self, other):
+        ret = Traffic()
+        ret.download = self.download + other.download
+        ret.upload = self.upload + other.upload
+        return ret
+
     def receive(self, size):
         self.download += size
 

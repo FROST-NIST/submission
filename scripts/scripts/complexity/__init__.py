@@ -7,6 +7,7 @@ from .allocator import MemoryAllocator
 from .communication import Traffic
 from .group import G, Element, Scalar, Encoding
 from .processor import Processor
+from .render import print_complexity_tables
 
 class GroupInfo:
     def __init__(self, mem, max_participants):
@@ -139,16 +140,6 @@ class Coordinator:
         return ret
 
     def run(self):
-        # Print the current memory and computational usage.
-        print('Coordinator:')
-        print('  {}'.format(self.mem))
-        print('  {}'.format(self.cpu))
-        for p in self.participants:
-            print('Participant {}:'.format(p.i.value()))
-            print('  {}'.format(p.mem))
-            print('  {}'.format(p.cpu))
-
-        print()
         print('Running round 1')
         self.set_round(1)
         commitment_list_enc = []
@@ -161,16 +152,6 @@ class Coordinator:
                 self.receive_encoding(p, binding_nonce_commitment_i),
             ))
 
-        # Print the current memory and computational usage.
-        print('Coordinator:')
-        print('  {}'.format(self.mem))
-        print('  {}'.format(self.cpu))
-        for p in self.participants:
-            print('Participant {}:'.format(p.i.value()))
-            print('  {}'.format(p.mem))
-            print('  {}'.format(p.cpu))
-
-        print()
         print('Running round 2')
         self.set_round(2)
         msg = '' # TODO Model memory usage?
@@ -187,16 +168,6 @@ class Coordinator:
             sig_shares.append(G.DeserializeScalar(self.mem, sig_share_i))
             sig_share_i.free()
 
-        # Print the current memory and computational usage.
-        print('Coordinator:')
-        print('  {}'.format(self.mem))
-        print('  {}'.format(self.cpu))
-        for p in self.participants:
-            print('Participant {}:'.format(p.i.value()))
-            print('  {}'.format(p.mem))
-            print('  {}'.format(p.cpu))
-
-        print()
         print('Aggregating signature')
         # The spec does not require the Coordinator to validate the commitments received
         # from participants before broadcasting them in round 2, so we don't bother
@@ -221,15 +192,9 @@ class Coordinator:
         for sig_share_i in sig_shares:
             sig_share_i.free()
 
-        # Print the current memory and computational usage.
-        print('Coordinator:')
-        print('  {}'.format(self.mem))
-        print('  {}'.format(self.cpu))
-        for p in self.participants:
-            print('Participant {}:'.format(p.i.value()))
-            print('  {}'.format(p.mem))
-            print('  {}'.format(p.cpu))
-            print('  {}'.format(p.traffic))
+        # Print the complexities.
+        print()
+        print_complexity_tables(self, self.participants[0])
 
         # Finished protocol run; free the signature, participants, and group info.
         sig[0].free()

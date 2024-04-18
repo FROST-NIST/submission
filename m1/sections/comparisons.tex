@@ -9,12 +9,14 @@ EdDSA is a variant of Schnorr signature based on twisted Edwards curves.
 No changes to existing implementations of the signature format or the verifier are required.
 The signing procedure, however, is changed to support threshold signers.
 
+In \cref{table:comparisons} we compare $\frost$ with other approaches in the literature.
 We limit our comparisons to other concurrently secure threshold signatures that are also backwards compatible with FIPS186-5.
 This includes
 \begin{itemize}
-	\item $\mathsf{2SCHNORR}$ by Nicolosi, Krohn, Dodis, and Mazi\`eres \cite{NicolosiKDM03}
-	\item $\mathsf{CLASSICS}$ and $\mathsf{ZEROS}$ by Makriyannis \cite{Makriyannis22}
+	\item An unnamed protocol by Gennaro, Jarecki, Krawczyk and Rabin \cite{GennaroJKR01}
 	\item An unnamed protocol by Stinson and Strobl \cite{StinsonS01}
+	\item $\mathsf{2SCHNORR}$ by Nicolosi, Krohn, Dodis, and Mazi\`eres \cite{NicolosiKDM03}
+	\item $\mathsf{CLASSICS}$ and $\mathsf{ZEROS}$ by Makriyannis \cite{Makriyannis22}	
 	\item An unnamed protocol by Lindell \cite{Lindell22}
 	\item $\mathsf{ROAST}$ by Ruffing, Ronge, Jin, Schneider{-}Bensch, and Schr{\"{o}}der \cite{RuffingRJSS22}
 	\item $\mathsf{SPARKLE}$ by Crites, Komlo, and Maller \cite{CritesKM23}
@@ -32,6 +34,57 @@ This includes
 	\item $\mathsf{MuSigDN}$ by Nick, Ruffling, Seurin, and Wuille \cite{NickRSW20}
 \end{itemize}
 We also exclude these schemes from our comparisons in this section.
+
+\subsection{Key for \cref{table:comparisons}}\label{section:comparisons:tablekey}
+We here give a key for understanding the comparisons in \cref{table:comparisons}.
+Where applicable we follow the keys in the Call for Proposals.
+\begin{itemize}
+	\item The number of parties $n$ can either be:
+	\begin{itemize}
+		\item (2) ``two" for $n = 2$;
+		\item (3) ``three" for $n = 3$;
+		\item  (S) ``small" for $4 \leq n \leq 8$;
+		\item  (M) ``medium" for $9 \leq n \leq 64$;
+		\item (L) ``large" for $65 \leq n \leq 1024$; 
+		\item (E) ``enormous" for $n > 1024$.
+	\end{itemize}
+	\item The corruption proportion $f/n$ can either be:  
+		\begin{itemize}
+			\item  (D) ``dishonest majority" for $f \geq n/2$; 
+			\item  (h) ``honest majority” for $f < n/2$; 
+			\item (H) “two-thirds honest majority” for $f < n/3$.
+	\end{itemize}
+	\item The assumptions can  be:
+		\begin{itemize}
+			\item $\dl$ ``discrete logarithm" if the $\dl$ assumption is required;
+			\item $\aomdl$ ``Algebraic one more discrete logarithm" if the $\aomdl$ assumption is required.
+		\end{itemize}
+	\item 	The idealisation for all schemes includes the random oracle model and so this is not indicated in the table.  The additional idealisations can be:
+		\begin{itemize}
+			\item (G)  ``game based" for a game based security notion;
+			\item (S) ``simulation" for a simulation based security notion;
+			\item (AGM) ``algebraic group model" if the AGM is required.
+		\end{itemize} 
+ 	\item The liveness guarantees can be
+ 		\begin{itemize}
+ 			\item  (IA) ``identifiable abort" if cheating parties can be identified;
+ 			\item  (h) ``robust under honest majority” if robustness holds given $f < n/2$;
+ 			\item (N) ``not robust against active adversaries". 
+ 		\end{itemize}
+ 	\item The adversary for all schemes we consider is active.  We write:
+ 		\begin{itemize}
+ 			\item (U)  ``unknown" for no known positive or negative adaptive result; 
+ 			\item (H) ``half" if adaptive security is provable for $f \leq \frac{k}{2}$
+ 			\item (F) ``full" for full adaptivity security i.e. adaptive security if provable for $f = k - 1$.
+ 		\end{itemize}
+ 	\item The number of rounds  can either be:
+ 	\begin{itemize}
+ 		\item (2) ``two" for $2$ rounds;
+ 		\item (3) ``three" for $3$ rounds;
+ 	\end{itemize}
+ 	\item The distributed system and communication requirements can be ......
+ 	\item The key generation can be ......
+\end{itemize}   
 
 \subsection{Concurrency}\label{section:comparisons:concurrency}
 $\frost$ as well as all other schemes in this comparison is concurrently secure.  
@@ -95,26 +148,33 @@ Thus $\frost$ allows for an effective non-interactive signing procedure assuming
 This is not possible for any threshold scheme producing EdDSA signatures that depends on $\dl$.
 
 Currently there is no known efficient concurrently secure $2$-round threshold signature scheme that generates EdDSA signatures that is secure under $\dl$.
-We do not know if this is fundamental or not.  However, there are efficient concurrently secure $3$-round threshold signature schemes \cite{}.
+We do not know if this is fundamental or not.  However, there are efficient concurrently secure $3$-round threshold signature schemes \cite{Lindell22,Makriyannis22,CritesKM23}.
 The $3$ round schemes require the message to be fixed in the first or second round of the protocol.
 
-\subsection{Communication Complexity}
+\subsection{Communication Complexity}\label{section:comparisons:communicationcomplexity}
+A full theoretical and experimental break down of the communication complexity of $\frost$ is given in \cref{?}.
+In each signing session all parties:  send $2 \Gr$ and $1 \F$; and receive $2 k \Gr$ as well as the message and signing set.
 
 \subsection{State Management and Storage Requirements}
 $\frost$ requires state management to ensure that:
 (1) secret randomness from the first round is available to the signer in the second round;
 (2) nonces from the first round are not used twice.
+All schemes we compare against also require state management to ensure these two properties.
 If the secret randomness from the first round is lost then the signer will not be able to take part in the second round.
-If the nonces from the first round are used twice then an adversary can recover the signers partial secret key.
-Thus the signer will be compromised.
+If the nonces from the first round are used twice then an adversary can recover the signers partial secret key,
+thus compromising the signer.
 
-Unlike in EdDSA signatures it is important that nonces are not generated using deterministic randomness to prevent nonces from the first round being used twice.
+Unlike in FIPS186-5 it is important that nonces are not generated using deterministic randomness to prevent nonces from the first round being used twice.
 
-As a two round scheme $\frost$ has lower state management and storage requirements than many other threshold signatures.
-There are no single round threshold signatures that product EdDSA signatures.
-There are single round threshold signatures that produce BLS signatures, but these require pairings and are not standardised by NIST.
-Unlike $3$ round alternatives ........
+As a two round scheme $\frost$ has simpler state management than the other threshold signatures we compare against.
+For example $\frost$ does not need to track which round of signing each party is currently in.
+There are no single round threshold signatures that product FIPS186-5 signatures.
 
+To allow simulate non-interactive signing $\frost$ preprocesses numerous first round contributions for each signing party.
+This is possible because $\frost$ signers do not learn the message or signing set until the second round.
+This requires storage of the state for all (preprocessed) open sessions.
+We only analyse security when the states are stored and managed exactly as specified in this document.
+\mary{Check with others if this is okay.}
 
 \subsection{Distributed Systems and Communication}
 
@@ -126,12 +186,31 @@ For many applications such as backups this suffices.
 However  $\frost$ can be instantiated with any simulatable distributed key generation \cite{}.
 
 
-\begin{table}
+
+
+\begin{table}[htbp]
 	\centering
-	\begin{tabular}{c c c c c}
+	\begin{tabular}{c c c c c c c c}
 		\toprule
-		Scheme & Threshold profile & Assumptions & Idealisation & \\ \midrule
-		& & & & \\ \bottomrule
+		Scheme & \ $n$ \ & $f/n$ & Assumption & Ideal & Live & Adversary & Rounds \\ \midrule
+		GJKR01 \cite{GennaroJKR01}& & & & & & & \\ 
+		SS01 \cite{StinsonS01} & & & & &  & & \\
+		$\mathsf{2SCHNORR}$ & & & & & &  & \\
+		$\mathsf{CLASSICS}$ & & & & & & & \\
+		$\mathsf{ZEROS}$ & & & & & &   & \\
+		Lindell22 \cite{Lindell22} & E & D & $\dl$ & S &  IA, N & U & $3$ \\
+		$\mathsf{ROAST}$ & & & & &  & & \\
+		$\mathsf{SPARKLE}$ & E & D & $\dl$ & G & IA, N & H & $3$ \\
+		$\mathsf{SPARKLE}^*$ & E & D & $\dl$ & G, AGM & IA, N & F & $3$ \\
+		$\mathsf{SPRINT}$ & & & & & &  & \\
+		$\mathsf{ARTIC}$ & & & & & &  & \\
+		$\mathsf{HARTS}$ & & & & & &  & \\
+		\midrule 
+		$\mathsf{FROST}$ & E & D & $\aomdl$ & ROM & IA, N & U & $2$ \\
+		\bottomrule
 	\end{tabular}
-	\caption{Table of comparisons with other schemes that are backwards compatible with the signature format and verifier of FIPS186-5. }
+	\caption{\label{table:comparisons}
+		Table of comparisons with other schemes that are backwards compatible with the signature format and verifier of FIPS186-5.
+		We provide a key for interpreting this table in \cref{section:comparisons:tablekey}.
+	 }
 \end{table}

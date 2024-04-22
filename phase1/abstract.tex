@@ -77,13 +77,13 @@ The output signature $\sigma = (R,z)$ is a standard Schnorr signature.
 
 \subsubsection{Security Properties.}
 FROST achieves a strong notion of unforgeability under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM) as we discuss in the following.
-In general, unforgeability guarantees that an adversary even corrupting the coordinator and up to $t-1$ signers cannot generate a valid signature for $\msg$ that is not considered signed by parties. As noticed by~\cite{BellareCKMTZ22}, there are different levels of conditions to declare $\msg$ is considered signed, which gives different security levels.
+In general, unforgeability guarantees that an adversary even corrupting the coordinator and up to $t-1$ signers cannot generate a valid signature for $\msg$ that is not considered signed by parties. As noticed by~\cite{BellareCKMTZ22}, there are different levels of conditions to declare $\msg$ is considered signed, which gives different security levels, and stronger conditions give stronger security guarantees.
 
-\chelsea{It would be helpful to emphasize that basic unforgeability is achieved by $\TSUF{0}$, and that each higher level gives finer-grained guarantees.}
+%\chelsea{It would be helpful to emphasize that basic unforgeability is achieved by $\TSUF{0}$, and that each higher level gives finer-grained guarantees.}
 
 \medskip
 
-\textbf{TS-UF-0.} The weakest condition, which gives weakest unforgeability, referred to as $\TSUF{0}$, considers that $\msg$ was signed as long as at least one honest party generated a signature share for $\msg$. In other words, for a $\TSUF{0}$-secure scheme, the adversary cannot forge a valid signature for $\msg$ if no honest party generated a signature share for $\msg$, but it does not have any security guarantee after the adversary got at least one signature share for $\msg$ even if the adversary does not corrupt any party at all.
+\textbf{TS-UF-0.} The weakest condition, which gives weakest unforgeability, referred to as $\TSUF{0}$, considers that $\msg$ was signed as long as at least one honest party generated a signature share for $\msg$. In other words, for a $\TSUF{0}$-secure scheme, the adversary cannot forge a valid signature for $\msg$ if no honest party generated a signature share for $\msg$, but it does not give any security guarantee after the adversary got at least one signature share for $\msg$ even if the adversary corrupted less than $(t-1)$ parties.
 
 \medskip
 
@@ -107,8 +107,8 @@ we consider $\msg$ was signed only if at least $(t - k)$ honest parties generate
 
 \medskip
 
-\textbf{TS-UF-3.} Further, Bellare et. al.~\cite{BellareCKMTZ22} show that FROST achieves the next level of security, $\TSUF{3}$, where the above condition is further strengthened:
-we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that not only $(t - k)$ honest parties but also all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$ generated signature shares for the same secound-round input $(\msg, \setCommit)$, where $(R_{i}, S_{i})$ is correct if and only if it was output by party $i$ in Round 1.\footnote{Since the coordinator was corrupted, the commitment $(R_{i}, S_{i})$ might not be one of the commitments output by honest party $i$ in Round 1.}
+\textbf{TS-UF-3.} Further, Bellare et. al.~\cite{BellareCKMTZ22} showed that FROST achieves the next level of security, $\TSUF{3}$, where the above condition is further strengthened:
+we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that not only $(t - k)$ honest parties but also all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$ generated signature shares for the same secound-round input $(\msg, \setCommit)$, where we say $(R_{i}, S_{i})$ is correct if and only if it was output by party $i$ in Round 1.\footnote{Since the coordinator was corrupted, the commitment $(R_{i}, S_{i})$ might not be one of the commitments output by honest party $i$ in Round 1.}
 
 %Namely, for a signing session with coalition $\coalition$ and second-round input $\{ (i, R_{i,\eid}, S_{i,\eid})\}_{i \in \coalition}$,
 %in additional to the above condition, it is also required that each
@@ -117,12 +117,13 @@ we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $
 
 \medskip
 
-\textbf{TS-UF-4.} Bellare et. al.~\cite{BellareCKMTZ22} also show that if we assume authenticated network channels such that the corrupted coordinator cannot forward incorrect commitments to honest parties in the online round, FROST achieves a yet stronger notion of unforgeability, $\TSUF{4}$, where we strengthen the $\TSUF{3}$ condition by requiring that there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that all honest parties in $\coalition$ generated shares for $(\msg, \setCommit)$.
+\textbf{TS-UF-4.} Bellare et. al.~\cite{BellareCKMTZ22} also showed that if we assume authenticated network channels which guarantee that the corrupted coordinator cannot forward incorrect commitments to honest parties in the online round, FROST achieves a yet stronger notion of unforgeability, $\TSUF{4}$, where we strengthen the $\TSUF{3}$ condition by requiring that there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that all honest parties in $\coalition$ generated shares for $(\msg, \setCommit)$.
 It is a stronger condition since the size of $\coalition$ is at least $t$ and thus the number of honest parties in $\coalition$ is at least $(t - k)$.
 
 \medskip
-\textbf{Strong unforgeability.} Moreover, Bellare et. al.~\cite{BellareCKMTZ22} shows that FROST is \emph{strongly} unforgeable, referred to as $\TSSUF{3}$ (or $\TSSUF{4}$ assuming authenticated channels), which, analogous to the strong unforgeability of signature schemes, guarantees that an adversary cannot forge a message-signature pair $(\msg,\sigma)$ that is not considered issued and there is at most one signature $\sigma$ that can be issued for each second-round input $(\msg, \setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition})$.
-Also, $(\msg, \sigma)$ is considered issued only if there are sufficiently many honest parties generated signature shares for $(\msg, \setCommit)$. In particular, for $\TSSUF{3}$, ``sufficiently many'' means all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$ and the total number must be at least $(t - k)$; for $\TSSUF{4}$, ``sufficiently many'' means all honest parties in $\coalition$.
+\textbf{Strong unforgeability.} Moreover, Bellare et. al.~\cite{BellareCKMTZ22} showed that FROST is \emph{strongly} unforgeable, referred to as $\TSSUF{3}$ (or $\TSSUF{4}$ assuming authenticated channels), which, analogous to the strong unforgeability of signature schemes, guarantees that an adversary cannot forge a message-signature pair $(\msg,\sigma)$ that is not considered issued.
+Also, it is guaranteed that there is at most one signature $\sigma$ that can be issued for each second-round input $(\msg, \setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition})$, and $(\msg, \sigma)$ is considered issued only if there are \emph{sufficiently many} honest parties generated signature shares for $(\msg, \setCommit)$.
+In particular, for $\TSSUF{3}$, ``sufficiently many honest parties'' includes all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$, and the total number of honest parties must be at least $(t - k)$; for $\TSSUF{4}$, ``sufficiently many honest parties'' refers to all honest parties in $\coalition$.
 
 
 

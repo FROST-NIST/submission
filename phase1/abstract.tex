@@ -119,6 +119,7 @@ we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $
 
 \textbf{TS-UF-4.} Bellare et. al.~\cite{BellareCKMTZ22} also showed that if we assume authenticated network channels which guarantee that the corrupted coordinator cannot forward incorrect commitments to honest parties in the online round, FROST achieves a yet stronger notion of unforgeability, $\TSUF{4}$, where we strengthen the $\TSUF{3}$ condition by requiring that there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that all honest parties in $\coalition$ generated shares for $(\msg, \setCommit)$.
 \chelsea{Intuitively, does this mean that honest parties contributions were not modified by the coordinator, which is possible for $\TSUF{3}$? }
+\chenzhi{Making sure that honest parties' commitments are not modified by the coordinator is one way to achieve $\TSUF{4}$ given a $\TSUF{3}$ secure scheme, but it is not in general what $\TSUF{4}$ achieves or aims to guarantee.}
 It is a stronger condition because the size of $\coalition$ is at least $t$ and thus the number of honest parties in $\coalition$ is at least $(t - k)$.
 
 \medskip

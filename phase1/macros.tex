@@ -5,6 +5,7 @@
 \newcommand{\liz}[1]{ { \color{magenta}  Liz:  #1 } }
 \newcommand{\mary}[1]{ { \color{cyan}  Mary:  #1 } }
 \newcommand{\chelsea}[1]{ { \color{violet}  Chelsea: #1 } }
+\newcommand{\chenzhi}[1]{ { \color{teal}  Chenzhi: #1 } }
 \newcommand{\change}[1]{ { \color{blue}   #1 } }
 
 % General
@@ -29,7 +30,10 @@
 \newcommand{\defn}[1]{{\bf {#1}}}
 \newcommand{\algcom}{\em\ \ /\!/ \  }
 \newcommand{\ssid}{\mathsf{ssid}}
+\newcommand{\eid}{\mathsf{eid}}
 \newcommand{\plus}{\raisebox{.4\height}{\scalebox{.8}{+}}}
+\newcommand{\TSUF}[1]{\mathrm{TS}\mbox{-}\mathrm{UF}\mbox{-}{#1}}
+\newcommand{\TSSUF}[1]{\mathrm{TS}\mbox{-}\mathrm{SUF}\mbox{-}{#1}}
 
 % threshold schemes
 \newcommand{\threshsig}{\mathsf{TS}}
@@ -111,6 +115,7 @@
 \newcommand{\numParties}{n}
 \newcommand{\thresh}{t}
 \newcommand{\tcor}{t-1} % corruption threshold
+\newcommand{\corruptedSigners}{\mathrm{CS}}
 
 % Shamir secret sharing
 \newcommand{\IssueShares}{\mathsf{Share}}
@@ -130,3 +135,10 @@
 \newcommand{\bfa}{\textbf{a}}
 \newcommand{\bfb}{\textbf{b}}
 \newcommand{\bfs}{\textbf{s}}
+
+
+% FROST notation
+\newcommand{\bindingfactor}{\rho}
+\newcommand{\partyid}{k}
+\newcommand{\msg}{m}
+\newcommand{\setCommit}{\mathcal{S}_{\rm com}}

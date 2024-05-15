@@ -186,9 +186,6 @@ For simplicity we specify $\frost$ assuming a trusted setup procedure, where a s
 For many applications such as backups this suffices.
 However  $\frost$ can be instantiated with any simulatable distributed key generation \cite{}.
 
-
-
-
 \begin{table}[htbp]
 	\centering
 	\begin{tabular}{c c c c c c c c}
@@ -215,3 +212,51 @@ However  $\frost$ can be instantiated with any simulatable distributed key gener
 		We provide a key for interpreting this table in \cref{section:comparisons:tablekey}.
 	 }
 \end{table}
+
+
+\section{System Model}\label{section:system-model}
+
+\subsection{Participants}
+Our system model is composed of a set of $n$ parties (or servers)$P_1, \dots, P_n$ that can be modeled by polynomial-time randomized Turing machines.
+
+The communication complexity of the FROST signing protocol is $\BigO(\lambda n^2)$.
+
+\subsection{Distributed Systems and Communication}
+
+\begin{description}
+
+\item[Synchrony.] FROST relies on a partially synchronous network.  Communication proceeds in synchronized rounds, and all protocol messages sent between honest parties arrive within some specified time bound.  To guarantee this round synchronization, we assume that the parties are equipped with synchronized clocks.  An adversary may be \emph{rushing}; that is, it may wait until all honest protocol messages have been sent before determining its own messages.
+
+\item[Reliability.] All protocol messages between participants are sent using a reliable network channel.
+
+\item[Broadcast.] FROST does not rely on a broadcast channel.  In particular, this means that an adversary could send different messages to different honest parties within the same signing session.  Authenticated channels are not assumed either; an adversary can decide which message to send to an honest party on behalf of another honest party.
+
+\end{description}
+
+FROST is not \emph{robust}, meaning that there is no guarantee that a signing session will terminate.
+However, FROST does allow \emph{identifiable abort}. 
+
+
+
+
+\subsection{Adversary}
+
+One goal of an adversary is to forge a FROST signature.
+
+\begin{description}
+
+\item[Active.] FROST is secure against an active adversary, who is able to corrupt up to $f = t-1$ out of a threshold of $t$ parties (where $t \leq n$), controlling them to arbitrarily deviate from the prescribed multi-party protocol.
+
+\item[Adaptive.] The stronger adaptive adversary is able to decide which parties to corrupt after observing some of the protocol execution. 
+Upon corruption, the adversary learns the secret key and private state for the corrupted party in all open signing sessions.
+Currently, there is no known proof of adaptive security for FROST.
+
+\item[Mobile.] A mobile adversary ``persistently continues (attempting to) corrupt parties across multiple executions of the main protocol, possibly corrupting parties after they have been recovered from a previous corruption."
+Currently, there is no known security proof for FROST capturing a mobile adversary.
+
+\end{description}
+
+
+
+
+

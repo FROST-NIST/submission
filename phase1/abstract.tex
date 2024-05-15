@@ -87,8 +87,11 @@ $\TSUF{0}$ however does not consider the case when the adversary corrupts fewer 
 
 \medskip
 
-\textbf{TS-UF-1.} The next level of security, $\TSUF{1}$, strengthens the above condition to requiring that at least $(t - k)$ honest parties generated signature shares for $\msg$,
-where $\numcorrupt$ denotes the number of corrupted parties.
+\textbf{TS-UF-1.} The next level of security, $\TSUF{1}$, strengthens the above condition to requiring that at least  $(t - \numcorrupt)$ honest parties generated signature shares for $\msg$,
+where $\numcorrupt$ denotes the number of corrupted parties,
+such that $\numcorrupt \leq t$.
+In other words,
+$\TSUF{1}$ considers the generalized setting when the adversary corrupts fewer corrupted parties than the maximum assumed threshold $t$.
 
 However, $\TSUF{1}$ does not guarantee that when the honest parties generated the signature shares for $\msg$, they all had the same view, i.e., receiving the same second-round input.
 %igning coalition and the same combinations of commitments.

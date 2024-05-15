@@ -88,14 +88,14 @@ $\TSUF{0}$ however does not consider the case when the adversary corrupts fewer 
 \medskip
 
 \textbf{TS-UF-1.} The next level of security, $\TSUF{1}$, strengthens the above condition to requiring that at least $(t - k)$ honest parties generated signature shares for $\msg$,
-where $k$ denotes the number of corrupted parties.
+where $\numcorrupt$ denotes the number of corrupted parties.
 
 However, $\TSUF{1}$ does not guarantee that when the honest parties generated the signature shares for $\msg$, they all had the same view, i.e., receiving the same second-round input.
 %igning coalition and the same combinations of commitments.
   %forwarding inconsistent information to different honest parties in the second (online) round.
 %combining signature shares from different signing sessions.
 More precisely, for a $\TSUF{1}$-secure scheme, the corrupted coordinator can send different combinations of commitments to different honest parties for signing $\msg$ in the (online) second round,
-and as long as the total number of honest parties responded is at least $(t-k)$, the adversary might be able to compute a valid signature for $\msg$.
+and as long as the total number of honest parties responded is at least $(t-\numcorrupt)$, the adversary might be able to compute a valid signature for $\msg$.
 
 %\chelsea{Wouldn't this result in a ROS attack, and thus break unforgeability altogether?}
 
@@ -103,12 +103,12 @@ and as long as the total number of honest parties responded is at least $(t-k)$,
 
 \textbf{TS-UF-2.}
 Such an malicious behavior is prevented by $\TSUF{2}$, where
-we consider $\msg$ was signed only if at least $(t - k)$ honest parties generated signature shares for $\msg$ and they received the same commitment combination when generating the shares.
+we consider $\msg$ was signed only if at least $(t - \numcorrupt)$ honest parties generated signature shares for $\msg$ and they received the same commitment combination when generating the shares.
 
 \medskip
 
 \textbf{TS-UF-3.} Further, Bellare et. al.~\cite{BellareCKMTZ22} showed that FROST achieves the next level of security, $\TSUF{3}$, where the above condition is further strengthened:
-we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that not only $(t - k)$ honest parties but also all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$ generated signature shares for the same secound-round input $(\msg, \setCommit)$, where we say $(R_{i}, S_{i})$ is correct if and only if it was output by party $i$ in Round 1.\footnote{Since the coordinator was corrupted, the commitment $(R_{i}, S_{i})$ might not be one of the commitments output by honest party $i$ in Round 1.}
+we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that not only  $(t - \numcorrupt)$ honest parties but also all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$ generated signature shares for the same secound-round input $(\msg, \setCommit)$, where we say $(R_{i}, S_{i})$ is correct if and only if it was output by party $i$ in Round 1.\footnote{Since the coordinator was corrupted, the commitment $(R_{i}, S_{i})$ might not be one of the commitments output by honest party $i$ in Round 1.}
 
 %Namely, for a signing session with coalition $\coalition$ and second-round input $\{ (i, R_{i,\eid}, S_{i,\eid})\}_{i \in \coalition}$,
 %in additional to the above condition, it is also required that each
@@ -119,7 +119,7 @@ we declare $\msg$ was signed only if there exists a coalition $\coalition$ and $
 
 \textbf{TS-UF-4.}
 The strongest notion presented by Bellare et. al.~\cite{BellareCKMTZ22} is $\TSUF{4}$, which requires that there exists a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that all honest parties in $\coalition$ generated shares for $(\msg, \setCommit)$.
-$\TSUF{4}$ is a stronger condition because the size of $\coalition$ is at least $t$ and thus the number of honest parties in $\coalition$ is at least $(t - k)$.
+$\TSUF{4}$ is a stronger condition because the size of $\coalition$ is at least $t$ and thus the number of honest parties in $\coalition$ is at least  $(t - \numcorrupt)$.
 One means to achieve $\TSUF{4}$ is by ensuring authenticity of participant's messages,
 to prevent an adversary from performing integrity attacks which may result in a valid output signature but in which participant views' are inconsistent during the protocol execution.
 
@@ -134,7 +134,7 @@ and simply recommend that FROST be performed over an authenticated channel to do
 \medskip
 \textbf{Strong unforgeability.} Moreover, Bellare et. al.~\cite{BellareCKMTZ22} showed that FROST is \emph{strongly} unforgeable, referred to as $\TSSUF{3}$ (or $\TSSUF{4}$ assuming authenticated channels), which, analogous to the strong unforgeability of signature schemes, guarantees that an adversary cannot forge a message-signature pair $(\msg,\sigma)$ that is not considered issued.
 Also, it is guaranteed that there is at most one signature $\sigma$ that can be issued for each second-round input $(\msg, \setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition})$, and $(\msg, \sigma)$ is considered issued only if there are \emph{sufficiently many} honest parties generated signature shares for $(\msg, \setCommit)$.
-In particular, for $\TSSUF{3}$, ``sufficiently many honest parties'' includes all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$, and the total number of honest parties must be at least $(t - k)$; for $\TSSUF{4}$, ``sufficiently many honest parties'' refers to all honest parties in $\coalition$.
+In particular, for $\TSSUF{3}$, ``sufficiently many honest parties'' includes all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$, and the total number of honest parties must be at least $(t - \numcorrupt)$; for $\TSSUF{4}$, ``sufficiently many honest parties'' refers to all honest parties in $\coalition$.
 
 
 

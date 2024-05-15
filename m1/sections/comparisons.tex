@@ -186,32 +186,32 @@ For simplicity we specify $\frost$ assuming a trusted setup procedure, where a s
 For many applications such as backups this suffices.
 However  $\frost$ can be instantiated with any simulatable distributed key generation \cite{}.
 
-%\begin{table}[htbp]
-%	\centering
-%	\begin{tabular}{c c c c c c c c}
-%		\toprule
-%		Scheme & \ $n$ \ & $f/n$ & Assumption & Ideal & Live & Adversary & Rounds \\ \midrule
-%		GJKR01 \cite{GennaroJKR01}& & & & & & & \\ 
-%		SS01 \cite{StinsonS01} & & & & &  & & \\
-%		$\mathsf{2SCHNORR}$ & & & & & &  & \\
-%		$\mathsf{CLASSICS}$ & & & & & & & \\
-%		$\mathsf{ZEROS}$ & & & & & &   & \\
-%		Lindell22 \cite{Lindell22} & E & D & $\dl$ & S &  IA, N & U & $3$ \\
-%		$\mathsf{ROAST}$ & & & & &  & & \\
-%		$\mathsf{SPARKLE}$ & E & D & $\dl$ & G & IA, N & H & $3$ \\
-%		$\mathsf{SPARKLE}^*$ & E & D & $\dl$ & G, AGM & IA, N & F & $3$ \\
-%		$\mathsf{SPRINT}$ & & & & & &  & \\
-%		$\mathsf{ARTIC}$ & & & & & &  & \\
-%		$\mathsf{HARTS}$ & & & & & &  & \\
-%		\midrule 
-%		$\mathsf{FROST}$ & E & D & $\aomdl$ & ROM & IA, N & U & $2$ \\
-%		\bottomrule
-%	\end{tabular}
-%	\caption{\label{table:comparisons}
-%		Table of comparisons with other schemes that are backwards compatible with the signature format and verifier of FIPS186-5.
-%		We provide a key for interpreting this table in \cref{section:comparisons:tablekey}.
-%	 }
-%\end{table}
+\begin{table}[htbp]
+	\centering
+	\begin{tabular}{c c c c c c c c}
+		\toprule
+		Scheme & \ $n$ \ & $f/n$ & Assumption & Ideal & Live & Adversary & Rounds \\ \midrule
+		GJKR01 \cite{GennaroJKR01}& & & & & & & \\ 
+		SS01 \cite{StinsonS01} & & & & &  & & \\
+		$\mathsf{2SCHNORR}$ & & & & & &  & \\
+		$\mathsf{CLASSICS}$ & & & & & & & \\
+		$\mathsf{ZEROS}$ & & & & & &   & \\
+		Lindell22 \cite{Lindell22} & E & D & $\dl$ & S &  IA, N & U & $3$ \\
+		$\mathsf{ROAST}$ & & & & &  & & \\
+		$\mathsf{SPARKLE}$ & E & D & $\dl$ & G & IA, N & H & $3$ \\
+		$\mathsf{SPARKLE}^*$ & E & D & $\dl$ & G, AGM & IA, N & F & $3$ \\
+		$\mathsf{SPRINT}$ & & & & & &  & \\
+		$\mathsf{ARTIC}$ & & & & & &  & \\
+		$\mathsf{HARTS}$ & & & & & &  & \\
+		\midrule 
+		$\mathsf{FROST}$ & E & D & $\aomdl$ & ROM & IA, N & U & $2$ \\
+		\bottomrule
+	\end{tabular}
+	\caption{\label{table:comparisons}
+		Table of comparisons with other schemes that are backwards compatible with the signature format and verifier of FIPS186-5.
+		We provide a key for interpreting this table in \cref{section:comparisons:tablekey}.
+	 }
+\end{table}
 
 
 \section{System Model}\label{section:system-model}

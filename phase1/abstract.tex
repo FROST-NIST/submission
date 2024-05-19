@@ -43,29 +43,31 @@ at which the joint signature is output.
 
 Note that while FROST assumes that signing nonces are used at most once,
 it does \emph{not} assume that participants maintain consistent session identifiers.
-To reflect this requirement,
-we introduce the notation of $\eid$, to denote an execution identifier maintained locally by each participant.
-$\eid$ is \emph{not} consistent among all participants.
+Each player performs $\Sign_1$ independently,
+and the coordinator does not need to pick inputs to $\Sign_2$ assuming some form of consistency of sessions.
+%To reflect this requirement,
+%we introduce the notation of $\eid$, to denote an execution identifier maintained locally by each participant.
+%$\eid$ is \emph{not} consistent among all participants.
 
 \paragraph{Round One.}
 The first signing round of FROST can be performed either at the time of signing,
 or as a batched operation during a pre-processing phase.
 
-Each party with identifier $\partyid$ samples two nonces $(r_{\partyid,\eid},  s_{\partyid, \eid}) \randpick \Zp$,
-and then derives their corresponding commitments  $R_{\partyid,\eid} \gets g^{r_{\partyid, \eid}}$, $ S_{\partyid,\eid} \gets  g^{s_{\partyid,\eid}}$.
-They store $(r_{\partyid,\eid}, s_{\partyid,\eid})$ in their internal state,
-and output $(R_{\partyid,\eid}, S_{\partyid,\eid})$.
+Each party with identifier $\partyid$ samples two nonces $(r_{\partyid},  s_{\partyid}) \randpick \Zp$,
+and then derives their corresponding commitments  $R_{\partyid} \gets g^{r_{\partyid}}$, $ S_{\partyid} \gets  g^{s_{\partyid}}$.
+They store $(r_{\partyid}, s_{\partyid})$ in their internal state,
+and output $(R_{\partyid}, S_{\partyid})$.
 
 \paragraph{Round Two.}
 All participants in a signing coalition $\coalition \subseteq \set{n}, \lvert \coalition \rvert \geq t$ accept as input a message $\msg$ and a combination of commitments $\setCommit := \{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ from parties in the coalition.
 
 To begin,
-each party $\partyid$ retrieves $(r_{\partyid,\eid}, s_{\partyid,\eid})$ such that $(R_\partyid, S_\partyid) = (g^{r_{\partyid, \eid}}, g^{s_{\partyid, \eid}})$. (The party aborts if such $(r_{\partyid,\eid}, s_{\partyid,\eid})$ does not exist.)
+each party $\partyid$ retrieves $(r_{\partyid}, s_{\partyid})$ such that $(R_\partyid, S_\partyid) = (g^{r_{\partyid}}, g^{s_{\partyid}})$. (The party aborts if such $(r_{\partyid}, s_{\partyid})$ does not exist.)
 Then, each party derives binding factors $\bindingfactor_i \gets \HashNon(i, \setCommit)$ for each party $i \in \coalition$, the group commitment $R \gets \prod_{i \in \coalition} R_{i} \cdot  S_{i}^{\bindingfactor_i}$, and the challenge $c \gets \HashSig(R, \pk, m)$.
 Finally, each party outputs their signature share as
-$z_\partyid \gets r_{\partyid,\eid} + s_{\partyid,\eid} \cdot \bindingfactor_\partyid + c \cdot \sk_\partyid \cdot \lambda_\partyid$,
+$z_\partyid \gets r_{\partyid} + s_{\partyid} \cdot \bindingfactor_\partyid + c \cdot \sk_\partyid \cdot \lambda_\partyid$,
 where $\lambda_\partyid$ is the Lagrange coefficient,
-and deletes $(r_{\partyid,\eid}, s_{\partyid,\eid})$.
+and deletes $(r_{\partyid}, s_{\partyid})$.
 
 
 \paragraph{Combine.}

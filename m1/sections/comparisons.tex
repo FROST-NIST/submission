@@ -217,35 +217,38 @@ However  $\frost$ can be instantiated with any simulatable distributed key gener
 \section{System Model}\label{section:system-model}
 
 \subsection{Participants}
-Our system model is composed of a set of $n$ parties (or servers)$P_1, \dots, P_n$ that can be modeled by probabilistic, polynomial-time Turing machines.
+We consider a set of $n$ parties
+$P_1, \dots, P_n$ and a coordinator $\mathcal{C}$, which execute the FROST signing protocol.
+All parties can be modeled as probabilistic, polynomial-time Turing machines.
+We assume there is prior agreement on the value of $n$ \liz{and $t$?} as well as the $n$ participant identifiers (i.e., all parties ``know who" the $n$ parties are).
+In implementations that wish to support authenticated channels, participant identifiers may be public keys, which need to be verified, for example, by zero-knowledge proofs during key generation.
+\liz{If not trusted keygen...}
 
-The communication complexity of the FROST signing protocol is $\BigO(\lambda n^2)$.
+Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by having parties broadcast their protocol messages instead.  However, this would result in increased communication complexity of $\BigO(\kappa n^2)$, where $\kappa$ is the security parameter.
 
 \subsection{Distributed Systems and Communication}
 
 \begin{description}
 
-\item[Synchrony.] FROST relies on a partially synchronous network.  Communication proceeds in synchronized rounds, and all protocol messages sent between honest parties arrive within some specified time bound.  To guarantee this round synchronization, we assume that the parties are equipped with synchronized clocks.  An adversary may be \emph{rushing}; that is, it may wait until all honest protocol messages have been sent before determining its own messages.
+\item[Synchrony.] FROST relies on a partially synchronous network, meaning that communication proceeds in synchronized rounds, and all protocol messages sent between honest parties arrive within some specified time bound.  To guarantee this round synchronization, we assume that the parties are equipped with synchronized clocks.  Note that an adversary may be \emph{rushing}; that is, it may wait until all honest protocol messages have been sent before determining its own messages.
 
-\item[Reliability.] All protocol messages between participants are sent using a reliable network channel.
+\item[Reliability.] FROST relies on a reliable network channel, meaning that all protocol messages are delivered correctly, exactly once, and in the intended order.
 
-\item[Broadcast.] FROST does not rely on a broadcast channel.  In particular, this means that an adversary could send different messages to different honest parties within the same signing session.  Authenticated channels are not assumed either; an adversary can decide which message to send to an honest party on behalf of another honest party.
+\item[Broadcast.] FROST does not rely on a broadcast channel; an adversary may send inconsistent protocol messages to honest parties, even within the same signing session.  Furthermore, authenticated channels are not assumed either, so an adversary can decide which protocol messages to send to an honest party on behalf of another honest party.
 
 \end{description}
 
 FROST is not \emph{robust}, meaning that there is no guarantee that a signing session will terminate.
-However, FROST does allow \emph{identifiable abort}. 
-
-
-
+However, FROST does achieve \emph{identifiable abort}.
+\liz{We should discuss this.  We also need to discuss the pitfalls of deployment in environments with weaker guarantees (e.g., with asynchronous and unreliable channels), and possible mitigations.}
 
 \subsection{Adversary}
 
-One goal of an adversary is to forge a FROST signature.
+A threshold signature scheme is said to be \emph{secure} if, with overwhelming probability, an adversary cannot forge a threshold signature.
 
 \begin{description}
 
-\item[Active.] FROST is secure against an active adversary, who is able to corrupt up to $f = t-1$ out of a threshold of $t$ parties (where $t \leq n$), controlling them to arbitrarily deviate from the prescribed multi-party protocol.
+\item[Active.] FROST is secure against an active adversary who may corrupt up to $f = t-1$ out of a threshold of $t$ parties (where $t \leq n$), controlling them to arbitrarily deviate from the prescribed multi-party protocol.   As described in Section~\ref{sec:unforgeability}, FROST achieves TS-(S)UF-3 security~\cite{BellareCKMTZ22} (without authenticated channels).
 
 \item[Adaptive.] The stronger adaptive adversary is able to decide which parties to corrupt after observing some of the protocol execution. 
 Upon corruption, the adversary learns the secret key and private state for the corrupted party in all open signing sessions.
@@ -253,6 +256,7 @@ Currently, there is no known proof of adaptive security for FROST.
 
 \item[Mobile.] A mobile adversary ``persistently continues (attempting to) corrupt parties across multiple executions of the main protocol, possibly corrupting parties after they have been recovered from a previous corruption."
 Currently, there is no known security proof for FROST capturing a mobile adversary.
+\liz{Dynamic-FROST (https://eprint.iacr.org/2024/896) possibly achieves this.}
 
 \end{description}
 

@@ -102,26 +102,36 @@ and verifies under the (single-party) Schnorr verification algorithm.
 \subsubsection{Security Properties.}
 Security of any threshold signature scheme is defined by the notion of unforgeability,
 assuming the adversary is able to corrupt fewer than a threshold number of participants.
-FROST achieves a strong notion of unforgeability under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM).
-Intuitively, unforgeability in a threshold signature setting guarantees that an adversary which corrupts the coordinator and up to $t-1$ signers \liz{This is the dishonest majority setting, but that's not the case for all threshold signature schemes.} cannot generate a valid signature \liz{This has not been defined.  Needs to be relative to $\pk$, for example.} for $\msg$ \liz{What $\msg$?} that has not been authorized by at least one honest signer. \liz{Authorized?}
-As noticed \liz{Not really ``noticed"} by Bellare et al.~\cite{BellareCKMTZ22}, there are different levels of conditions to declare $\msg$ to be authorized (signed), which gives different security levels, and stronger conditions give stronger security guarantees.
-\liz{These are only definitions for partially non-interactive schemes.  Also, we are proposing the fully two-round scheme.}
+FROST achieves a strong notion of unforgeability in the dishonest majority setting,
+under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM).
+Intuitively, unforgeability in a threshold signature setting guarantees that an adversary which corrupts the coordinator and up to $t-1$ signers cannot generate a valid signature for any message $\msg$ that has not been signed by at least one honest signer.
+As demonstrated by Bellare et al.~\cite{BellareCKMTZ22}, there are different conditions to declare $\msg$ to be authorized (signed),
+which gives different security levels for partially non-interactive schemes such as FROST.
+%\liz{These are only definitions for partially non-interactive schemes.  Also, we are proposing the fully two-round scheme.}
+%\chelsea{it can be used in the one-round setting too}
 
 %\chelsea{It would be helpful to emphasize that basic unforgeability is achieved by $\TSUF{0}$, and that each higher level gives finer-grained guarantees.}
 
 \medskip
 
-\textbf{TS-UF-0.} The weakest condition, which gives the weakest unforgeability, is referred to as $\TSUF{0}$, \liz{for a threshold signature TS} considers that $\msg$ was signed as long as at least one honest party generated a signature share for $\msg$. \liz{Meaning $z_i$?} In other words, for a $\TSUF{0}$-secure scheme, the adversary cannot forge a valid signature for $\msg$ if no honest party generated a signature share for $\msg$.
-$\TSUF{0}$ however does not consider the case when the adversary corrupts fewer than $(t-1)$ parties.
+\textbf{TS-UF-0.} The weakest condition,
+which gives the weakest unforgeability for a threshold signature scheme,
+is referred to as $\TSUF{0}$, considers that $\msg$ was signed as long as at least one honest party generated a signature share for $\msg$.
+In other words, for a $\TSUF{0}$-secure scheme, the adversary cannot forge a valid signature for $\msg$ if no honest party generated a signature share for $\msg$.
+In the setting of FROST,
+this condition entails that at least one honest signer output a response $z_i$ for a message $m$,
+if the output signature under $\pk$ is valid.
+$\TSUF{0}$ however does not consider the case when the adversary corrupts \emph{fewer} than $(t-1)$ parties,
+i.e., it assumes that the number of corrupted parties $\numcorrupt = t-1$.
 
 \medskip
 
 \textbf{TS-UF-1.} The next level of security, $\TSUF{1}$, strengthens the above condition to requiring that at least  $(t - \numcorrupt)$ honest parties generated signature shares for $\msg$,
 where $\numcorrupt$ denotes the number of corrupted parties,
-such that $\numcorrupt \leq t$. \liz{See next comment.}
+such that $\numcorrupt \leq t$.
 In other words,
-$\TSUF{1}$ considers the generalized setting when the adversary corrupts fewer parties than the maximum assumed threshold $t$.
-\liz{This makes it seem like an adversary could corrupt $t$ parties.}
+$\TSUF{1}$ considers the generalized setting when the adversary corrupts $\numcorrupt < t-1$;
+i.e., fewer parties than the maximum allowed $t-1$.
 
 However, $\TSUF{1}$ does not guarantee that when the honest parties generated the signature shares for $\msg$, they all had the same view, i.e., received the same second-round input.
 %igning coalition and the same combinations of commitments.
@@ -151,7 +161,8 @@ we declare $\msg$ to be signed only if there exists \liz{is} a coalition $\coali
 \medskip
 
 \textbf{TS-UF-4.}
-The strongest notion of security defined by Bellare et al.~\cite{BellareCKMTZ22} is $\TSUF{4}$, which requires that there exists \liz{is} a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that all honest parties in $\coalition$ generated shares \liz{Shares?} for $(\msg, \setCommit)$.
+The strongest notion of security defined by Bellare et al.~\cite{BellareCKMTZ22} is $\TSUF{4}$,
+which requires that there is a coalition $\coalition$ and $\setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ such that all honest parties in $\coalition$ generated  signature shares  $z_i$ for $(\msg, \setCommit)$.
 $\TSUF{4}$ is a stronger condition because the size of $\coalition$ is at least $t$ and thus the number of honest parties in $\coalition$ is at least  $(t - \numcorrupt)$.
 One means to achieve $\TSUF{4}$ security is by ensuring authenticity of participants' messages,
 to prevent an adversary from performing integrity attacks that may result in a valid output signature but where participants' views are inconsistent during the protocol execution.
@@ -165,8 +176,7 @@ we allow implementations to choose if they wish to achieve $\TSUF{4}$ security,
 and simply recommend that FROST be performed over an authenticated channel to do so.
 
 \medskip
-\textbf{Strong unforgeability.} Moreover, Bellare et al.~\cite{BellareCKMTZ22} showed that FROST is \emph{strongly} unforgeable, referred to as $\TSSUF{3}$ (or $\TSSUF{4}$ assuming authenticated channels), which, analogous to the strong unforgeability of signature schemes, guarantees that an adversary cannot forge a message-signature pair $(\msg,\sigma)$ that is not considered issued.
-\liz{Issued? Authorized? Signed? Let's be consistent.}
+\textbf{Strong unforgeability.} Moreover, Bellare et al.~\cite{BellareCKMTZ22} showed that FROST is \emph{strongly} unforgeable, referred to as $\TSSUF{3}$ (or $\TSSUF{4}$ assuming authenticated channels), which, analogous to the strong unforgeability of signature schemes, guarantees that an adversary cannot forge a message-signature pair $(\msg,\sigma)$ that is not considered  authorized.
 Also, it is guaranteed that there is at most one signature $\sigma$ that can be issued for each second-round input $(\msg, \setCommit=\{ (i, R_{i}, S_{i})\}_{i \in \coalition})$, and $(\msg, \sigma)$ is considered issued only if there are \emph{sufficiently many} honest parties that generated signature shares for $(\msg, \setCommit)$.
 In particular, for $\TSSUF{3}$, ``sufficiently many honest parties'' includes all honest parties $i\in \coalition$ with \emph{correct} $(R_{i}, S_{i})$, and the total number of honest parties must be at least $(t - \numcorrupt)$; for $\TSSUF{4}$, ``sufficiently many honest parties'' refers to all honest parties in $\coalition$.
 

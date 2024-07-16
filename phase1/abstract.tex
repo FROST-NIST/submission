@@ -12,25 +12,25 @@ we will provide a Cat1 submission for subcategory C1.1 EdDSA signing.
 
 \subsection{Outline of Approach}
 
-FROST (Flexible Round-Optimized Schnorr Threshold Signatures)~\cite{KomloG20,BellareCKMTZ22} addresses the need for efficient threshold EdDSA signing operations, while improving upon the state of the art to ensure strong security properties \emph{without} limiting the parallelism of signing operations.
-\liz{There are a number of concurrently secure Schnorr threshold schemes now, so this sentence could use rewording.}
-FROST achieves improved efficiency in the optimistic case that no participant misbehaves.
-\liz{Not clear what this sentence means.}
+FROST (Flexible Round-Optimized Schnorr Threshold Signatures)~\cite{KomloG20,BellareCKMTZ22} addresses the need for efficient threshold EdDSA signing operations,
+while ensuring strong security properties \emph{without} limiting the parallelism of signing operations.
+FROST signing operations can be performed in two network rounds assuming no participant misbehaves.
 However, in the case where a misbehaving participant contributes malformed values during the protocol,
 honest parties can identify and exclude the misbehaving participant, and re-run the protocol.
-\liz{We should be rigorous somewhere about how identifiable abort is achieved.}
+%\liz{We should be rigorous somewhere about how identifiable abort is achieved.}
 
-Here, we describe the (unoptimized) two-round version of FROST.
-\liz{What is the optimized two-round version?}
-However, implementations may wish to perform the first round in a batched setting,
+Here, we describe the two-round version of FROST.
+However, implementations may perform the first round in a batched setting,
 allowing the scheme to be used in a manner where online signing requires only a single round of communication.
 
 \subsubsection{System Model.}
 We assume the following when describing FROST:
 
 \begin{itemize}[itemsep=0.5em]
-\item \textbf{Idealized Key Generation via Shamir Secret Sharing.} Key generation via Shamir Secret Sharing is an idealized operation.
-\liz{What is an idealized operation?}
+\item \textbf{Idealized Key Generation via Shamir Secret Sharing.}
+We model key generation as an idealized functionality that outputs Shamir secret shares $\sk_i$ of a private signing key corresponding to a public key $\pk$,
+where $n$ total parties receive a secret signing share,
+and $\thresh$ parties are required to reconstruct.
 We assume that each participant is initialized with their respective secret key share,
 the public key shares of all other participants,
 and the joint public key representing the group.
@@ -43,17 +43,18 @@ but otherwise the coordinator is untrusted.
 \subsubsection{Protocol Approach.}
 
 FROST signing can be performed either in two online rounds,
-or in one batched preprocessing round,
+or one online round,
+after performing the first round using matching.
 and a second purely online round.
-\liz{Above, we say we only consider two-round FROST.}
 Then, a final stage to perform aggregation is required,
 at which the joint signature is output.
+The scheme is defined with respect to the domain-separated hash functions $\HashNon$ and $\HashSig$.
 
-Note that while FROST assumes that signing nonces are used at most once, \liz{Define nonce = number used only once.}
+Note that while FROST assumes that randomness generated during the first round of signing is used at most once during the second round of signing,
 it does \emph{not} assume that participants maintain consistent session identifiers.
-Each player performs $\Sign_1$ independently,
-and the coordinator does not need to pick inputs to $\Sign_2$ assuming some form of consistency of sessions.
-\liz{$\Sign_1, \Sign_2$ and sessions not defined.}
+Each player performs the first round of signing independently,
+and the coordinator does not need to pick inputs to the second round of signing,
+assuming some form of consistency of sessions.
 %To reflect this requirement,
 %we introduce the notation of $\eid$, to denote an execution identifier maintained locally by each participant.
 %$\eid$ is \emph{not} consistent among all participants.
@@ -61,38 +62,48 @@ and the coordinator does not need to pick inputs to $\Sign_2$ assuming some form
 \paragraph{Round One.}
 The first signing round of FROST can be performed either at the time of signing,
 or as a batched operation during a pre-processing phase.
-\liz{Again, not sure we should be mixing these since we don't properly define the pre-processing version.}
+%\liz{Again, not sure we should be mixing these since we don't properly define the pre-processing version.}
+% CK- we don't need to define the pre-processing setting;
+% the first round is just done as a batched operation.
 
-Each party with identifier $\partyid$ \liz{What kind of identifier?  A random string?  Public key?} samples two nonces $(r_{\partyid},  s_{\partyid}) \randpick \Zp$,
-\liz{We should define any mathematical notation in a preliminaries section.}
-and then derives their corresponding commitments \liz{Should define commitment.} $R_{\partyid} \gets g^{r_{\partyid}}$, $ S_{\partyid} \gets  g^{s_{\partyid}}$.
+Each party with identifier $\partyid \in \{ 1, \ldots, n\} $ where $n \in \Zp$ is the total number of parties
+samples two nonces $(r_{\partyid},  s_{\partyid}) \randpick \Zp$,
+%\liz{We should define any mathematical notation in a preliminaries section.}
+% CK- this is just an abstract, I think it is ok.
+and then derives the corresponding commitments $R_{\partyid} \gets g^{r_{\partyid}}$, $ S_{\partyid} \gets  g^{s_{\partyid}}$.
 They store $(r_{\partyid}, s_{\partyid})$ in their internal state,
 and output $(R_{\partyid}, S_{\partyid})$.
 
 \paragraph{Round Two.}
-All participants in a signing coalition $\coalition \subseteq \set{n}, \lvert \coalition \rvert \geq t$, \liz{$n, t$ not defined.} accept as input a message $\msg$ and a combination of commitments $\setCommit := \{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ from parties in the coalition.
+All participants in a signing coalition $\coalition \subseteq \set{n}, \lvert \coalition \rvert \geq \thresh$,
+accept as input a message $\msg$ and a combination of commitments $\setCommit := \{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ from parties in the coalition.
 
-To begin,
-each party $\partyid$ retrieves $(r_{\partyid}, s_{\partyid})$ \liz{from their internal state} such that $(R_\partyid, S_\partyid) = (g^{r_{\partyid}}, g^{s_{\partyid}})$. (The party aborts if such $(r_{\partyid}, s_{\partyid})$ does not exist.)
-\liz{Are they pulling a nonce pair from a particular session as in the two-round version?}
-Then, each party derives binding factors $\bindingfactor_i \gets \HashNon(i, \setCommit)$ for each party $i \in \coalition$, the group commitment $R \gets \prod_{i \in \coalition} R_{i} \cdot  S_{i}^{\bindingfactor_i}$, and the challenge \liz{This terminology isn't defined.} $c \gets \HashSig(R, \pk, m)$.
-\liz{$\pk$ and hashes not defined.}
+On input the message $m$ and commitment set $B = \{ (i, R_i, S_i) \}_{i \in \S}$,
+each party $\partyid$ retrieves $(r_{\partyid}, s_{\partyid})$ from their internal state such that $(R_\partyid, S_\partyid) = (g^{r_{\partyid}}, g^{s_{\partyid}})$.
+(The party aborts if such $(r_{\partyid}, s_{\partyid})$ does not exist.)
+Then, each party derives binding factors $\bindingfactor_i \gets \HashNon(i, \setCommit)$ for each party $i \in \coalition$, the group commitment $R \gets \prod_{i \in \coalition} R_{i} \cdot  S_{i}^{\bindingfactor_i}$, and the challenge
+%\liz{This terminology isn't defined.}
+%\chelsea{defined next}
+$c \gets \HashSig(R, \pk, m)$.
 Finally, each party outputs their signature share as
 $z_\partyid \gets r_{\partyid} + s_{\partyid} \cdot \bindingfactor_\partyid + c \cdot \sk_\partyid \cdot \lambda_\partyid$,
-where $\lambda_\partyid$ is the Lagrange coefficient, \liz{Define.}
+where $\lambda_\partyid$ is the Lagrange coefficient,
+%\liz{Define.}
+%\chelsea{we can do that in the full version}
 and deletes $(r_{\partyid}, s_{\partyid})$.
 
 
 \paragraph{Combine.}
-The combiner \liz{We call this the coordinator above.} derives the joint response \liz{?} $z = \sum_{i \in \coalition} z_i$.
+The coordinator derives the response $z = \sum_{i \in \coalition} z_i$.
 The group commitment $R$ is derived as explained above.
-The output signature $\sigma = (R,z)$ is a standard Schnorr signature.
-\liz{We should be explicit about how exactly this satisfies standard verification.}
+The output signature $\sigma = (R,z)$ is a standard Schnorr signature,
+and verifies under the (single-party) Schnorr verification algorithm.
 
 \subsubsection{Security Properties.}
-\liz{Maybe say something about how security of any threshold signature scheme is defined by correctness and unforgeability.}
+Security of any threshold signature scheme is defined by the notion of unforgeability,
+assuming the adversary is able to corrupt fewer than a threshold number of participants.
 FROST achieves a strong notion of unforgeability under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM).
-Intuitively, unforgeability in a threshold setting \liz{signature} guarantees that an adversary which corrupts the coordinator and up to $t-1$ signers \liz{This is the dishonest majority setting, but that's not the case for all threshold signature schemes.} cannot generate a valid signature \liz{This has not been defined.  Needs to be relative to $\pk$, for example.} for $\msg$ \liz{What $\msg$?} that has not been authorized by at least one honest signer. \liz{Authorized?}
+Intuitively, unforgeability in a threshold signature setting guarantees that an adversary which corrupts the coordinator and up to $t-1$ signers \liz{This is the dishonest majority setting, but that's not the case for all threshold signature schemes.} cannot generate a valid signature \liz{This has not been defined.  Needs to be relative to $\pk$, for example.} for $\msg$ \liz{What $\msg$?} that has not been authorized by at least one honest signer. \liz{Authorized?}
 As noticed \liz{Not really ``noticed"} by Bellare et al.~\cite{BellareCKMTZ22}, there are different levels of conditions to declare $\msg$ to be authorized (signed), which gives different security levels, and stronger conditions give stronger security guarantees.
 \liz{These are only definitions for partially non-interactive schemes.  Also, we are proposing the fully two-round scheme.}
 

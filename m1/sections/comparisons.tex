@@ -230,7 +230,7 @@ Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by hav
 
 \begin{description}
 
-\item[Synchrony.] FROST does not rely on a synchronous network.  \liz{Check partially synchronous.}An adversary may also be \emph{rushing}; that is, it may wait until all honest protocol messages have been sent before determining its own messages.
+\item[Synchrony.] FROST does not rely on a synchronous network for unforgeability. An adversary may also be \emph{rushing}; that is, it may wait until all honest protocol messages have been sent before determining its own messages.
 \liz{Does it really make sense to call FROST synchronous or asynchronous as long it does not guarantee termination?  Also, we might consider separating network assumptions required for unforgeability vs. network assumptions required for robustness (and any other properties).}
 
 \item[Reliability.] FROST relies on a reliable network channel, meaning that all protocol messages are delivered correctly, exactly once, and in the intended order.
@@ -241,7 +241,7 @@ Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by hav
 \end{description}
 
 FROST is not \emph{robust}, meaning that there is no guarantee that a signing session will terminate.
-However, FROST does achieve XXX.
+However, FROST does achieve identifiable aborts (with a coordinator, or without if broadcast is used).
 \liz{The NIST document says we should discuss the pitfalls of deployment in environments with weaker guarantees (e.g., with asynchronous and unreliable channels), and possible mitigations.  We might also want to add what is gained by making stronger assumptions (e.g., broadcast yields identifiable abort).}
 
 \subsection{Adversary}

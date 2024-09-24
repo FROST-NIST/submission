@@ -19,19 +19,39 @@ class G:
 
     @classmethod
     def SerializeElement(cls, mem, A):
-        return Encoding(mem, 'Serialized({})'.format(A.name()), cls.Ne)
+        name = A.name()
+        if name.startswith('Deserialized('):
+            name = name.removeprefix('Deserialized(').removesuffix(')')
+        else:
+            name = 'Serialized({})'.format(name)
+        return Encoding(mem, name, cls.Ne)
 
     @classmethod
     def DeserializeElement(cls, mem, buf):
-        return Element(mem, 'Deserialized({})'.format(buf.name()))
+        name = buf.name()
+        if name.startswith('Serialized('):
+            name = name.removeprefix('Serialized(').removesuffix(')')
+        else:
+            name = 'Deserialized({})'.format(name)
+        return Element(mem, name)
 
     @classmethod
     def SerializeScalar(cls, mem, s):
-        return Encoding(mem, 'Serialized({})'.format(s.name()), cls.Ns, s.value())
+        name = s.name()
+        if name.startswith('Deserialized('):
+            name = name.removeprefix('Deserialized(').removesuffix(')')
+        else:
+            name = 'Serialized({})'.format(name)
+        return Encoding(mem, name, cls.Ns, s.value())
 
     @classmethod
     def DeserializeScalar(cls, mem, buf):
-        return Scalar(mem, 'Deserialized({})'.format(buf.name()), buf.value())
+        name = buf.name()
+        if name.startswith('Serialized('):
+            name = name.removeprefix('Serialized(').removesuffix(')')
+        else:
+            name = 'Deserialized({})'.format(name)
+        return Scalar(mem, name, buf.value())
 
 # An element of a prime-order group `G`.
 class Element:

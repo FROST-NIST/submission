@@ -9,13 +9,13 @@
 import progressbar
 
 from .group import G, Scalar
+from .hash import H
 
 # 4.1 Nonce generation
-def nonce_generate(mem, secret, nonce_name):
-    random_bytes = mem.alloc_bytes('random_bytes', 32)
-    secret_enc = G.SerializeScalar(mem, secret)
-    # nonce = H3(random_bytes || secret_enc)
-    nonce = Scalar(mem, nonce_name)
+def nonce_generate(cpu, secret, nonce_name):
+    random_bytes = cpu.random_bytes(32)
+    secret_enc = G.SerializeScalar(cpu.mem, secret)
+    nonce = H.H3(cpu, nonce_name, [random_bytes, secret_enc])
     random_bytes.free()
     secret_enc.free()
     return nonce
@@ -45,19 +45,15 @@ def derive_interpolating_value(cpu, L, x_i):
 # 4.3 List Operations
 
 def encode_group_commitment_list(mem, commitment_list):
-    encoded_group_commitment_size = 0
+    encoded_group_commitment = []
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-        identifier_enc = G.SerializeScalar(mem, identifier)
-        hiding_nonce_commitment_enc = G.SerializeElement(mem, hiding_nonce_commitment)
-        binding_nonce_commitment_enc = G.SerializeElement(mem, binding_nonce_commitment)
-        encoded_group_commitment_size += (
-            identifier_enc.size +
-            hiding_nonce_commitment_enc.size +
-            binding_nonce_commitment_enc.size)
-        identifier_enc.free()
-        hiding_nonce_commitment_enc.free()
-        binding_nonce_commitment_enc.free()
-    return mem.alloc_bytes('encoded_group_commitment', encoded_group_commitment_size)
+        encoded_commitment = [
+            G.SerializeScalar(mem, identifier),
+            G.SerializeElement(mem, hiding_nonce_commitment),
+            G.SerializeElement(mem, binding_nonce_commitment),
+        ]
+        encoded_group_commitment += encoded_commitment
+    return encoded_group_commitment
 
 def participants_from_commitment_list(commitment_list):
     identifiers = []
@@ -72,34 +68,29 @@ def binding_factor_for_participant(binding_factor_list, identifier):
     raise "invalid participant"
 
 # 4.4 Binding Factors Computation
-def compute_binding_factors(mem, group_public_key, commitment_list, msg):
-    group_public_key_enc = G.SerializeElement(mem, group_public_key)
+def compute_binding_factors(cpu, group_public_key, commitment_list, msg):
+    group_public_key_enc = G.SerializeElement(cpu.mem, group_public_key)
     # Hashed to a fixed-length.
-    msg_hash = mem.alloc_bytes('H4(msg)', G.H_LEN)
+    msg_hash = H.H4(cpu, 'H4(msg)', [msg])
     # Hashed to a fixed-length.
-    encoded_group_commitment_list = encode_group_commitment_list(mem, commitment_list)
-    encoded_commitment_hash = mem.alloc_bytes('H5(encoded_group_commitment_list)', G.H_LEN)
-    encoded_group_commitment_list.free()
+    encoded_group_commitment = encode_group_commitment_list(cpu.mem, commitment_list)
+    encoded_commitment_hash = H.H5(cpu, 'H5(encoded_group_commitment)', encoded_group_commitment)
+    for part in encoded_group_commitment:
+        part.free()
 
     # The encoding of the group public key is a fixed length within a ciphersuite.
-    # rho_input_prefix = group_public_key_enc || msg_hash || encoded_commitment_hash
-    rho_input_prefix = mem.alloc_bytes(
-        'rho_input_prefix',
-        group_public_key_enc.size + G.H_LEN + G.H_LEN,
-    )
-    group_public_key_enc.free()
-    msg_hash.free()
-    encoded_commitment_hash.free()
+    rho_input_prefix = [group_public_key_enc, msg_hash, encoded_commitment_hash]
 
     binding_factor_list = []
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-        identifier_enc = G.SerializeScalar(mem, identifier)
-        # rho_input = rho_input_prefix || identifier_enc
-        binding_factor = Scalar(mem, 'H1(rho_input)')
+        identifier_enc = G.SerializeScalar(cpu.mem, identifier)
+        rho_input = rho_input_prefix + [identifier_enc]
+        binding_factor = H.H1(cpu, 'H1(rho_input)', rho_input)
         identifier_enc.free()
         binding_factor_list.append((identifier, binding_factor))
 
-    rho_input_prefix.free()
+    for part in rho_input_prefix:
+        part.free()
     return binding_factor_list
 
 # 4.5 Group Commitment Computation
@@ -115,19 +106,19 @@ def compute_group_commitment(cpu, commitment_list, binding_factor_list):
     return group_commitment
 
 # 4.6 Signature Challenge Computation
-def compute_challenge(mem, group_commitment, group_public_key, msg):
-    group_comm_enc = G.SerializeElement(mem, group_commitment)
-    group_public_key_enc = G.SerializeElement(mem, group_public_key)
-    # challenge_input = group_comm_enc || group_public_key_enc || msg
-    challenge = Scalar(mem, 'H2(challenge_input)')
+def compute_challenge(cpu, group_commitment, group_public_key, msg):
+    group_comm_enc = G.SerializeElement(cpu.mem, group_commitment)
+    group_public_key_enc = G.SerializeElement(cpu.mem, group_public_key)
+    challenge_input = [group_comm_enc, group_public_key_enc, msg]
+    challenge = H.H2(cpu, 'H2(challenge_input)', challenge_input)
     group_comm_enc.free()
     group_public_key_enc.free()
     return challenge
 
 # 5.1 Round One - Commitment
 def commit(cpu, sk_i):
-    hiding_nonce = nonce_generate(cpu.mem, sk_i, 'hiding_nonce')
-    binding_nonce = nonce_generate(cpu.mem, sk_i, 'binding_nonce')
+    hiding_nonce = nonce_generate(cpu, sk_i, 'hiding_nonce')
+    binding_nonce = nonce_generate(cpu, sk_i, 'binding_nonce')
     hiding_nonce_commitment = G.ScalarBaseMult(cpu, hiding_nonce)
     binding_nonce_commitment = G.ScalarBaseMult(cpu, binding_nonce)
     nonces = (hiding_nonce, binding_nonce)
@@ -137,7 +128,7 @@ def commit(cpu, sk_i):
 # 5.2 Round Two - Signature Share Generation
 def sign(cpu, identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
     # Compute the binding factor(s)
-    binding_factor_list = compute_binding_factors(cpu.mem, group_public_key, commitment_list, msg)
+    binding_factor_list = compute_binding_factors(cpu, group_public_key, commitment_list, msg)
     binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
 
     # Compute the group commitment
@@ -148,7 +139,7 @@ def sign(cpu, identifier, sk_i, group_public_key, nonce_i, msg, commitment_list)
     lambda_i = derive_interpolating_value(cpu, participant_list, identifier)
 
     # Compute the per-message challenge
-    challenge = compute_challenge(cpu.mem, group_commitment, group_public_key, msg)
+    challenge = compute_challenge(cpu, group_commitment, group_public_key, msg)
     group_commitment.free()
 
     # Compute the signature share
@@ -177,7 +168,7 @@ def sign(cpu, identifier, sk_i, group_public_key, nonce_i, msg, commitment_list)
 # 5.3 Signature Share Aggregation
 def aggregate(cpu, commitment_list, msg, group_public_key, sig_shares):
     # Compute the binding factors
-    binding_factor_list = compute_binding_factors(cpu.mem, group_public_key, commitment_list, msg)
+    binding_factor_list = compute_binding_factors(cpu, group_public_key, commitment_list, msg)
 
     # Compute the group commitment
     group_commitment = compute_group_commitment(cpu, commitment_list, binding_factor_list)

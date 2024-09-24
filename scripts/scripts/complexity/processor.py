@@ -1,4 +1,5 @@
 from .group import Element, Scalar
+from .hash import Digest, H
 
 class Ops:
     def __init__(self):
@@ -7,14 +8,16 @@ class Ops:
         self.element_base_exps = 0
         self.scalar_adds = 0
         self.scalar_muls = 0
+        self.hash_blocks = 0
 
     def __repr__(self):
-        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} scalar adds, {} scalar muls'.format(
+        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} scalar adds, {} scalar muls, {} hash blocks'.format(
             self.element_muls,
             self.element_exps,
             self.element_base_exps,
             self.scalar_adds,
             self.scalar_muls,
+            self.hash_blocks,
         )
 
     def __add__(self, other):
@@ -24,6 +27,7 @@ class Ops:
         ret.element_base_exps = self.element_base_exps + other.element_base_exps
         ret.scalar_adds = self.scalar_adds + other.scalar_adds
         ret.scalar_muls = self.scalar_muls + other.scalar_muls
+        ret.hash_blocks = self.hash_blocks + other.hash_blocks
         return ret
 
     def element_mul(self):
@@ -48,9 +52,12 @@ class Ops:
         # TODO: Cost model of scalar division
         self.scalar_muls += 1
 
+    def process_hash_blocks(self, n):
+        self.hash_blocks += n
+
 # Computation tracker
 # - Per node
-# - "Performs" computations (scalar muls, etc.)
+# - "Performs" computations (scalar muls, hashing, etc.)
 # - Tracks total computations per round (and thus overall).
 class Processor:
     def __init__(self, mem):
@@ -65,6 +72,9 @@ class Processor:
         if self.mem.round not in self.ops:
             self.ops[self.mem.round] = Ops()
         return self.ops[self.mem.round]
+
+    def random_bytes(self, n):
+        return RandomBytes(self.mem, n)
 
     def element_mul(self, P, Q):
         assert self.mem is P.mem, 'element on wrong machine'
@@ -170,3 +180,37 @@ class Processor:
             '({})/({})'.format(j.name(), k.name()),
             res,
         )
+
+    def hash(self, name, m):
+        block = self.mem.alloc_bytes('H_block', H.BlockSize)
+        bytes_digested = sum([
+            len(input) if type(input) == str else input.size
+            for input in m
+        ])
+        # Ceiling division to determine how many blocks were processed.
+        blocks_processed = -(bytes_digested // -H.BlockSize)
+        self.round_ops().process_hash_blocks(blocks_processed)
+        digest = Digest(self.mem, name, H.OutputLen)
+        block.free()
+        return digest
+
+    def hash_to_scalar(self, name, m):
+        # All FROST ciphersuites implement hash-to-scalar by hashing the input
+        # message and then reducing the resulting digest; we assume that the
+        # digest and scalar are both in memory at the same time at some point.
+        digest = self.hash(name, m)
+        scalar = Scalar(self.mem, name)
+        digest.free()
+        return scalar
+
+# Bytes sampled from a cryptographically secure pseudorandom number generator.
+class RandomBytes:
+    def __init__(self, mem, size):
+        self.size = size
+        self.allocation = mem.alloc_bytes('random_bytes', size)
+
+    def free(self):
+        self.allocation.free()
+
+    def __repr__(self):
+        return 'RandomBytes({})'.format(self.size)

@@ -26,11 +26,11 @@ def print_complexity_tables(coordinator, participant):
             participant.mem.cost_model.count(round_stored),
         ))
     print()
-    print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k |')
-    print('--------------|-------|-------|------|------|-------|-------|')
+    print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k | H blocks |')
+    print('--------------|-------|-------|------|------|-------|-------|----------|')
     for round in [0, 1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
+        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
             'Coordinator' if round == 0 else '           ',
             round,
             round_ops.element_muls,
@@ -38,19 +38,21 @@ def print_complexity_tables(coordinator, participant):
             round_ops.element_base_exps,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
+            round_ops.hash_blocks,
         ))
     coord_total_ops = sum(coordinator.cpu.ops.values(), start=Ops())
-    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
+    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
         coord_total_ops.element_muls,
         coord_total_ops.element_exps,
         coord_total_ops.element_base_exps,
         coord_total_ops.scalar_adds,
         coord_total_ops.scalar_muls,
+        coord_total_ops.hash_blocks,
     ))
-    print('--------------|-------|-------|------|------|-------|-------|')
+    print('--------------|-------|-------|------|------|-------|-------|----------|')
     for round in [0, 1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
+        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
             'Participant' if round == 0 else '           ',
             round,
             round_ops.element_muls,
@@ -58,14 +60,16 @@ def print_complexity_tables(coordinator, participant):
             round_ops.element_base_exps,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
+            round_ops.hash_blocks,
         ))
     participant_total_ops = sum(participant.cpu.ops.values(), start=Ops())
-    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
+    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
         participant_total_ops.element_muls,
         participant_total_ops.element_exps,
         participant_total_ops.element_base_exps,
         participant_total_ops.scalar_adds,
         participant_total_ops.scalar_muls,
+        participant_total_ops.hash_blocks,
     ))
     print()
     print('Communication | Round | Download |  Upload  |')

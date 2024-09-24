@@ -7,6 +7,7 @@ from . import frost
 from .allocator import MemoryAllocator
 from .communication import Traffic
 from .group import G, Element, Scalar, Encoding
+from .hash import H
 from .processor import Processor
 from .render import print_complexity_tables
 
@@ -221,13 +222,19 @@ def main():
         # FROST(Ed25519, SHA-512)
         G.Ne = 32
         G.Ns = 32
-        G.H_LEN = 64
+        H.OutputLen = 64
+        H.contextString = 'FROST-ED25519-SHA512-v1'
+        H.BlockSize = 128
+        H.H2Prefix = []
         mem_cost_model = allocator.CostModel(G.Ne * 3, G.Ns)
     elif args.security_strength == 224:
         # FROST(Ed448, SHAKE256)
         G.Ne = 57
         G.Ns = 57
-        G.H_LEN = 114
+        H.OutputLen = 114
+        H.contextString = 'FROST-ED448-SHAKE256-v1'
+        H.BlockSize = 136
+        H.H2Prefix = ['SigEd448', '\0', '\0']
         mem_cost_model = allocator.CostModel(G.Ne * 3, G.Ns)
     else:
         assert False

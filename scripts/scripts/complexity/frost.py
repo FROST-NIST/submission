@@ -1,3 +1,11 @@
+# Core FROST logic.
+#
+# These functions implement various components of RFC 9591, and as such follow
+# its notation (while annotating them with memory and computation tracking). The
+# one exception is that the processor tracks computations using multiplicative
+# notation to match the protocol description in the submission; this affects
+# `compute_group_commitment`.
+
 import progressbar
 
 from .group import G, Scalar
@@ -100,9 +108,9 @@ def compute_group_commitment(cpu, commitment_list, binding_factor_list):
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
         binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
         binding_nonce = G.ScalarMult(cpu, binding_nonce_commitment, binding_factor)
-        hiding_plus_binding = cpu.element_add(hiding_nonce_commitment, binding_nonce)
+        hiding_plus_binding = cpu.element_mul(hiding_nonce_commitment, binding_nonce)
         binding_nonce.free()
-        cpu.element_add_assign(group_commitment, hiding_plus_binding)
+        cpu.element_mul_assign(group_commitment, hiding_plus_binding)
         hiding_plus_binding.free()
     return group_commitment
 

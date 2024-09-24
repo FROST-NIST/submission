@@ -26,24 +26,24 @@ def print_complexity_tables(coordinator, participant):
             participant.mem.cost_model.count(round_stored),
         ))
     print()
-    print('  Computation | Round | A + A | [k]A | [k]B | k + k | k * k |')
+    print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k |')
     print('--------------|-------|-------|------|------|-------|-------|')
     for round in [0, 1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
         print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
             'Coordinator' if round == 0 else '           ',
             round,
-            round_ops.element_adds,
-            round_ops.element_scalar_muls,
-            round_ops.element_scalar_base_muls,
+            round_ops.element_muls,
+            round_ops.element_exps,
+            round_ops.element_base_exps,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
         ))
     coord_total_ops = sum(coordinator.cpu.ops.values(), start=Ops())
     print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
-        coord_total_ops.element_adds,
-        coord_total_ops.element_scalar_muls,
-        coord_total_ops.element_scalar_base_muls,
+        coord_total_ops.element_muls,
+        coord_total_ops.element_exps,
+        coord_total_ops.element_base_exps,
         coord_total_ops.scalar_adds,
         coord_total_ops.scalar_muls,
     ))
@@ -53,17 +53,17 @@ def print_complexity_tables(coordinator, participant):
         print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
             'Participant' if round == 0 else '           ',
             round,
-            round_ops.element_adds,
-            round_ops.element_scalar_muls,
-            round_ops.element_scalar_base_muls,
+            round_ops.element_muls,
+            round_ops.element_exps,
+            round_ops.element_base_exps,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
         ))
     participant_total_ops = sum(participant.cpu.ops.values(), start=Ops())
     print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |'.format(
-        participant_total_ops.element_adds,
-        participant_total_ops.element_scalar_muls,
-        participant_total_ops.element_scalar_base_muls,
+        participant_total_ops.element_muls,
+        participant_total_ops.element_exps,
+        participant_total_ops.element_base_exps,
         participant_total_ops.scalar_adds,
         participant_total_ops.scalar_muls,
     ))

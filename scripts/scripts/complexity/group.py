@@ -1,4 +1,9 @@
 # A prime-order group `G`.
+#
+# This class provides the group object specified in RFC 9591 Section 3.1, which
+# uses additive notation. The processor tracks computations using multiplicative
+# notation to match the protocol description in the submission. We map between
+# the two notations inside the relevant member functions.
 class G:
     @classmethod
     def Identity(cls, mem):
@@ -6,11 +11,11 @@ class G:
 
     @classmethod
     def ScalarMult(cls, cpu, A, k):
-        return cpu.element_scalar_mul(A, k)
+        return cpu.element_exp(A, k)
 
     @classmethod
     def ScalarBaseMult(cls, cpu, k):
-        return cpu.element_scalar_base_mul(k)
+        return cpu.element_base_exp(k)
 
     @classmethod
     def SerializeElement(cls, mem, A):

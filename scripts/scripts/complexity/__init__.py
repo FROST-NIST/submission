@@ -9,7 +9,7 @@ from .communication import Traffic
 from .group import G, Element, Scalar, Encoding
 from .hash import H
 from .processor import Processor
-from .render import print_complexity_tables
+from .render import ComplexityTables, print_complexity_tables
 
 class GroupInfo:
     def __init__(self, mem, max_participants):
@@ -141,7 +141,7 @@ class Coordinator:
         buf.free()
         return ret
 
-    def run(self):
+    def run(self, tables):
         print('Running round 1')
         self.set_round(1)
         commitment_list_enc = []
@@ -197,6 +197,7 @@ class Coordinator:
         # Print the complexities.
         print()
         print_complexity_tables(self, self.participants[0])
+        tables.update(self, self.participants[0])
 
         # Finished protocol run; free the signature, participants, and group info.
         sig[0].free()
@@ -245,4 +246,4 @@ def main():
         args.max_participants,
         mem_cost_model,
     )
-    coord.run()
+    coord.run(ComplexityTables(args))

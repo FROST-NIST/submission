@@ -1,0 +1,145 @@
+%!TEX root = ../main.tex
+
+\section{Analytic complexity}\label{section:complexity}
+
+% An analytical estimation of (i) memory complexity, (ii) computational complexity,
+% (iii) communication complexity, and (iv) round complexity. The estimates should:
+% include a breakdown across the various possible phases of the protocol; clarify
+% the complexity per party versus the aggregate in the entire system; clarify its
+% dependence on various configurable parameters, such as for example the security
+% strength, the number of parties and the thresholds.
+
+\subsection{Round complexity}
+
+The round complexity of FROST is straightforward: FROST requires two rounds to
+execute a signing session.
+
+In the following sections we will refer to three rounds:
+\begin{itemize}
+	\item "Round 0" denotes any state that entities need to maintain between signing
+  sessions. This is only relevant to memory complexity. TODO: Call this Setup.
+  \item "Round 1" and "round 2" denote the actual signing rounds.
+\end{itemize}
+
+We will use the following notation:
+\begin{itemize}
+	\item $K$: the threshold (minimum number of participants).
+	\item $N$: maximum number of participants.
+	\item $P$: actual number of participants.
+\end{itemize}
+
+\subsection{Communication complexity}
+
+In round 1, no information needs to be broadcast from the coordinator to
+participants other than the fact that a signing round is starting. The
+participants do not even learn which other participants are in the signing
+session at this stage. Each participant sends back 2 encoded group elements.
+
+In round 2, each participant receives $2P$ encoded group elements and $P$
+encoded scalars, and sends back a single encoded scalar.
+
+Communication complexity at the coordinator scales linearly in the number of
+participants: the coordinator downloads $2P$ encoded group elements at the end
+of round 1, broadcasts $2P^2$ encoded group elements and $P^2$ encoded scalars
+at the beginning of round 2, and downloads $P$ encoded scalars at the end of
+round 2.
+
+\begin{table}
+	\centering
+% BEGIN communication-3-5-3-128
+% END communication-3-5-3-128
+	\caption{Communication complexity for 3-of-5 FROST with 3 participants at the 128-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN communication-6-10-8-224
+% END communication-6-10-8-224
+	\caption{Communication complexity for 6-of-10 FROST with 8 participants at the 224-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN communication-600-1000-700-128
+% END communication-600-1000-700-128
+	\caption{Communication complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level.}
+\end{table}
+
+\subsection{Memory complexity}
+
+In "round 0" (before the start of a signing session), the coordinator and
+participants need to store $N + 1$ group elements in memory, corresponding to
+the group information. Participants additionally need to store 2 scalars: one
+representing their identity within the signing group, and the other being their
+secret share.
+
+In round 1, the coordinator additionally stores the $2P$ encoded group elements
+at the end of round 1; there is no need for these to be decoded (for validity
+checking) before broadcasting them in round 2. Participants store an additional
+2 group elements and scalars each, along with (TODO explain bytes).
+
+In round 2, the coordinator stores a maximum of $2P + N + 1$ group elements and
+$P$ scalars in memory, while participants store a maximum of $2P + N + 3$ group
+elements and $P + 4$ scalars. (TODO explain bytes)
+
+TODO: Explain that the tables show the "high water" mark.
+
+\begin{table}
+	\centering
+% BEGIN memory-3-5-3-128
+% END memory-3-5-3-128
+	\caption{Memory complexity for 3-of-5 FROST with 3 participants at the 128-bit security level. The cost is in bytes of memory allocated.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN memory-6-10-8-224
+% END memory-6-10-8-224
+	\caption{Memory complexity for 6-of-10 FROST with 8 participants at the 224-bit security level. The cost is in bytes of memory allocated.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN memory-600-1000-700-128
+% END memory-600-1000-700-128
+	\caption{Memory complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level. The cost is in bytes of memory allocated.}
+\end{table}
+
+\subsection{Computational complexity}
+
+The coordinator performs no significant computations in round 1. Participants
+perform 2 fixed-base exponentiations, and (for the security levels presented in
+this document) process 2 blocks of hash function input.
+
+The significant computations occur during round 2.
+
+Participants perform $2P$ group element multiplications, $P$ exponentiations,
+$P + 1$ scalar additions, and $2P + 2$ scalar multiplications. The during
+aggregation, the coordinator performs $2P$ group element multiplications, $P$
+exponentiations, and $P$ scalar additions.
+
+TODO: Fill out hash function complexity.
+
+TODO: Convey the multi-exp by showing the number of terms in it, and then include
+its muls etc. for a specific algorithm in the table (e.g. Pippenger).
+
+\begin{table}
+	\centering
+% BEGIN computational-3-5-3-128
+% END computational-3-5-3-128
+	\caption{Computational complexity for 3-of-5 FROST with 3 participants at the 128-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN computational-6-10-8-224
+% END computational-6-10-8-224
+	\caption{Computational complexity for 6-of-10 FROST with 8 participants at the 224-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN computational-600-1000-700-128
+% END computational-600-1000-700-128
+	\caption{Computational complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level.}
+\end{table}

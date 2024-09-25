@@ -6,15 +6,18 @@ class Ops:
         self.element_muls = 0
         self.element_exps = 0
         self.element_base_exps = 0
+        self.element_multi_exps = []
         self.scalar_adds = 0
         self.scalar_muls = 0
         self.hash_blocks = 0
 
     def __repr__(self):
-        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} scalar adds, {} scalar muls, {} hash blocks'.format(
+        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} variable-base multi-exponentiations with at most {} terms, {} scalar adds, {} scalar muls, {} hash blocks'.format(
             self.element_muls,
             self.element_exps,
             self.element_base_exps,
+            len(self.element_multi_exps),
+            max(self.element_multi_exps),
             self.scalar_adds,
             self.scalar_muls,
             self.hash_blocks,
@@ -25,6 +28,7 @@ class Ops:
         ret.element_muls = self.element_muls + other.element_muls
         ret.element_exps = self.element_exps + other.element_exps
         ret.element_base_exps = self.element_base_exps + other.element_base_exps
+        ret.element_multi_exps = self.element_multi_exps + other.element_multi_exps
         ret.scalar_adds = self.scalar_adds + other.scalar_adds
         ret.scalar_muls = self.scalar_muls + other.scalar_muls
         ret.hash_blocks = self.hash_blocks + other.hash_blocks
@@ -38,6 +42,9 @@ class Ops:
 
     def element_base_exp(self):
         self.element_base_exps += 1
+
+    def element_multi_exp(self, num_terms):
+        self.element_multi_exps += [num_terms]
 
     def scalar_add(self):
         self.scalar_adds += 1
@@ -60,8 +67,9 @@ class Ops:
 # - "Performs" computations (scalar muls, hashing, etc.)
 # - Tracks total computations per round (and thus overall).
 class Processor:
-    def __init__(self, mem):
+    def __init__(self, mem, use_multi_exponentiation):
         self.mem = mem
+        self.use_multi_exponentiation = use_multi_exponentiation
         self.ops = {}
 
     def __str__(self):
@@ -98,6 +106,17 @@ class Processor:
         assert self.mem is k.mem, 'scalar on wrong machine'
         self.round_ops().element_base_exp()
         return Element(self.mem, 'B^{}'.format(k.name()))
+
+    def element_multi_exp(self, terms):
+        assert self.use_multi_exponentiation, 'multi-exponentiation is disabled on this machine'
+        for (A, k) in terms:
+            assert self.mem is A.mem, 'element on wrong machine'
+            assert self.mem is k.mem, 'scalar on wrong machine'
+        self.round_ops().element_multi_exp(len(terms))
+        return Element(
+            self.mem,
+            ' * '.join(['({}^{})'.format(A.name(), k.name()) for (A, k) in terms]),
+        )
 
     def scalar_add(self, j, k):
         assert self.mem is j.mem, 'scalar on wrong machine'

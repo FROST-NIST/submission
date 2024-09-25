@@ -1,6 +1,6 @@
 # Analytical estimator of complexity.
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 import progressbar
 
 from . import frost
@@ -21,9 +21,9 @@ class GroupInfo:
         [pk_i.free() for pk_i in self.pk_i]
 
 class Participant:
-    def __init__(self, i, group_info, mem_cost_model):
+    def __init__(self, i, group_info, mem_cost_model, use_multi_exponentiation):
         self.mem = MemoryAllocator(mem_cost_model)
-        self.cpu = Processor(self.mem)
+        self.cpu = Processor(self.mem, use_multi_exponentiation)
         self.traffic = {}
 
         self.i = Scalar(self.mem, 'i', i)
@@ -101,12 +101,19 @@ class Participant:
 #
 # - Handles communication between nodes
 class Coordinator:
-    def __init__(self, min_participants, num_participants, max_participants, mem_cost_model):
+    def __init__(
+        self,
+        min_participants,
+        num_participants,
+        max_participants,
+        mem_cost_model,
+        use_multi_exponentiation,
+    ):
         assert min_participants <= num_participants
         assert num_participants <= max_participants
 
         self.mem = MemoryAllocator(mem_cost_model)
-        self.cpu = Processor(self.mem)
+        self.cpu = Processor(self.mem, use_multi_exponentiation)
         self.key_holders = []
 
         # The Coordinator and each participant are additionally configured with common
@@ -118,7 +125,12 @@ class Coordinator:
         print('Creating', max_participants, 'key holders')
         for i in progressbar.progressbar(range(1, max_participants + 1)):
             # TODO: Does coordinator need to store `i` in memory as a `Scalar`?
-            self.key_holders.append(Participant(i, group_info, mem_cost_model))
+            self.key_holders.append(Participant(
+                i,
+                group_info,
+                mem_cost_model,
+                use_multi_exponentiation,
+            ))
 
         print('Selecting', num_participants, 'participants')
         self.participants = self.key_holders[:num_participants]
@@ -214,6 +226,7 @@ def main():
     parser.add_argument('max_participants', type=int)
     parser.add_argument('num_participants', type=int)
     parser.add_argument('security_strength', type=int, choices=[128, 224])
+    parser.add_argument('--multiexp', action=BooleanOptionalAction)
     args = parser.parse_args()
 
     # Current assumptions:
@@ -245,5 +258,6 @@ def main():
         args.num_participants,
         args.max_participants,
         mem_cost_model,
+        args.multiexp,
     )
     coord.run(ComplexityTables(args))

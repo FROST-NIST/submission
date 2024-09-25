@@ -18,6 +18,10 @@ class G:
         return cpu.element_base_exp(k)
 
     @classmethod
+    def MultiScalarMult(cls, cpu, terms):
+        return cpu.element_multi_exp(terms)
+
+    @classmethod
     def SerializeElement(cls, mem, A):
         name = A.name()
         if name.startswith('Deserialized('):

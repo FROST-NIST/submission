@@ -96,13 +96,34 @@ def compute_binding_factors(cpu, group_public_key, commitment_list, msg):
 # 4.5 Group Commitment Computation
 def compute_group_commitment(cpu, commitment_list, binding_factor_list):
     group_commitment = G.Identity(cpu.mem)
-    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-        binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
-        binding_nonce = G.ScalarMult(cpu, binding_nonce_commitment, binding_factor)
-        hiding_plus_binding = cpu.element_mul(hiding_nonce_commitment, binding_nonce)
-        binding_nonce.free()
-        cpu.element_mul_assign(group_commitment, hiding_plus_binding)
-        hiding_plus_binding.free()
+    # This part of the protocol can be performed with a multi-scalar multiplication, but
+    # doing so has different memory allocation patterns. We let the processor define
+    # whether it can do multi-exponentiation, and adjust the implementation accordingly.
+    if cpu.use_multi_exponentiation:
+        msm_terms = []
+        for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+            binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
+            # Some MSM implementations need to own the memory of all terms, which would
+            # significantly increase memory usage. We don't model that here, as none of
+            # the terms are computed, so the entire MSM can reference existing memory
+            # (doing so just increases the implementation complexity in some languages).
+            msm_terms += [(binding_nonce_commitment, binding_factor)]
+            # The terms with an effective scalar of 1 can just be directly accumulated
+            # outside the MSM.
+            cpu.element_mul_assign(group_commitment, hiding_nonce_commitment)
+        msm_result = G.MultiScalarMult(cpu, msm_terms)
+        # `msm_terms` only contains references, so we don't free any of its elements here.
+        # TODO: Model memory cost of an array of references?
+        cpu.element_mul_assign(group_commitment, msm_result)
+        msm_result.free()
+    else:
+        for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+            binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
+            binding_nonce = G.ScalarMult(cpu, binding_nonce_commitment, binding_factor)
+            hiding_plus_binding = cpu.element_mul(hiding_nonce_commitment, binding_nonce)
+            binding_nonce.free()
+            cpu.element_mul_assign(group_commitment, hiding_plus_binding)
+            hiding_plus_binding.free()
     return group_commitment
 
 # 4.6 Signature Challenge Computation

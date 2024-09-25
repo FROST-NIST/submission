@@ -135,10 +135,11 @@ def latex_computational_complexity_table(coordinator, participant):
 		\\toprule
 		Computation & Round & $A \\times A$ & $A^k$  & $B^k$  & $k + k$ & $k \\times k$ & H blocks \\\\ \midrule
 '''
-    for round in [0, 1, 2]:
+    # There is no computation in "round 0".
+    for round in [1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
         s += '		{} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
-            'Coordinator' if round == 0 else '           ',
+            'Coordinator' if round == 1 else '           ',
             round,
             round_ops.element_muls,
             round_ops.element_exps,
@@ -157,10 +158,10 @@ def latex_computational_complexity_table(coordinator, participant):
         coord_total_ops.hash_blocks,
     )
     s += '		\midrule\n'
-    for round in [0, 1, 2]:
+    for round in [1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
         s += '		{} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
-            'Participant' if round == 0 else '           ',
+            'Participant' if round == 1 else '           ',
             round,
             round_ops.element_muls,
             round_ops.element_exps,
@@ -185,10 +186,11 @@ def latex_communication_complexity_table(coordinator, participant):
 		\\toprule
 		Communication & Round & Download & Upload \\\\ \midrule
 '''
-    for round in [0, 1, 2]:
+    # There is no communication in "round 0".
+    for round in [1, 2]:
         round_traffic = sum([p.traffic.get(round, Traffic()) for p in coordinator.participants], start=Traffic())
         s += '		{} & {} & {} & {} \\\\\n'.format(
-            'Coordinator' if round == 0 else '           ',
+            'Coordinator' if round == 1 else '           ',
             round,
             round_traffic.upload,
             round_traffic.download,
@@ -199,10 +201,10 @@ def latex_communication_complexity_table(coordinator, participant):
         coord_total_traffic.download,
     )
     s += '		\midrule\n'
-    for round in [0, 1, 2]:
+    for round in [1, 2]:
         round_traffic = participant.traffic.get(round, Traffic())
         s += '		{} & {} & {} & {} \\\\\n'.format(
-            'Participant' if round == 0 else '           ',
+            'Participant' if round == 1 else '           ',
             round,
             round_traffic.download,
             round_traffic.upload,

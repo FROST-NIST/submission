@@ -262,9 +262,39 @@ Currently, there is no known security proof for FROST capturing a mobile adversa
 
 \end{description}
 
-\subsection{Clarification of prior work}
+\subsection{Clarification of Prior Work}
 
-\paragraph{An enumeration of the building blocks, techniques and ideas known to have been developed or authored in prior work and that are used in the specification of the primitives and threshold schemes of the present submission. With regard to the building blocks, techniques and ideas in the submission (preferably including hyper-references to the related portions of the submitted specification), this section should aim to clarify and distinguish between (i) those that may have been designed by authors that are not part of the submitters’ team, (ii) those that may have been previously developed/authored by members of the submitters’ team, and (iii) those that may be original in the present submission. Appropriate bibliographic references should be given where applicable, preferably including (when possible) a hyperlink to online-accessible documentation. If applicable, this section can also include known information pertinent to the “call for patent claims”.}
+\paragraph{An enumeration of the building blocks, techniques and ideas known to have been developed or authored in prior work and that are used in the specification of the primitives and threshold schemes of the present submission. With regard to the building blocks, techniques and ideas in the submission (preferably including hyper-references to the related portions of the submitted specification), this section should aim to clarify and distinguish between (i) those that may have been designed by authors that are not part of the submitters’ team, (ii) those that may have been previously developed/authored by members of the submitters’ team, and (iii) those that may be original in the present submission. Appropriate bibliographic references should be given where applicable, preferably including (when possible) a hyperlink to online-accessible documentation. If applicable, this section can also include known information pertinent to the “call for patent claims.”}
+
+
+%The classic security proof for Schnorr signatures uses rewinding under the discrete logarithm (DL) assumption in the ROM \cite{PointchevalS00}, and static security of a variety of key-unique threshold Schnorr signature schemes using rewinding in the ROM have been shown under the discrete logarithm (DL) assumption~\cite{KomloG20,CritesKM23} and the (interactive) OMDL assumption \cite{BellareCKMTZ22,CritesKM21,RuffingRJSS22,ChuGRS23}.
+
+\begin{enumerate}
+\item Schnorr introduced the eponymous signature scheme in \cite{Schnorr91}. \liz{Maybe include patents and pull from FIPS-185-6.}
+\item Pointcheval and Stern~\cite{PointchevalS00} proved that the Schnorr signature scheme is existentially unforgeable under chosen-message attacks (EUF-CMA)~\cite{GoldwasserMR88} in the random oracle model~\cite{BellareR93} under the discrete logarithm assumption. The security proof relies on the technique of rewinding~\liz{Who invented the technique of rewinding?}
+\item Stinson and Strobl~\cite{StinsonS01} proposed a \liz{the first?} threshold Schnorr signature scheme secure in the
+random oracle model under the discrete logarithm assumption. Signing requires performing a three-round distributed key generation protocol (DKG)~\cite{GennaroJKR07} to generate the nonce for each signature. Thus, it requires participants to perform a minimum of four rounds of communication for each signature produced. \liz{Say something about network assumptions?}
+\item Abe and Fehr constructed a threshold Schnorr signature scheme also by using a three-round DKG for nonce generation.
+For security, they assume that the majority of parties are honest (i.e., $f < n/2$) and prove their scheme secure against up to $f$ adaptive corruptions. \liz{In the ROM under DL? What about static security? They also require strong network assumptions (synchronous broadcast).}
+\item Gennaro, Jarecki, Krawczyk and Rabin~\cite{GennaroJKR01} proposed a threshold Schnorr signature scheme that was shown not to be secure under concurrent signing sessions.
+\item MuSig (original 2-round construction and 3-round fix)
+\item Komlo and Goldberg introduced FROST, a two-round threshold Schnorr signature scheme.
+\item ROS attack papers: 2003,\cite{cryptoeprint:2018/417,DrijversEFKLNS19}, BLORR21. 
+\item MuSig2: AOMDL / DWMS (concurrent)
+\item Crites, Komlo, and Maller introduced and proved the security of a variety of two- and three-round Schnorr threshold and multi-signature schemes.
+\item ROAST: FROST3 \liz{Ideas not used? Or yes, for identifiable aborts/robustness?}
+\item Bellare, Tessaro, and Zhu proved the security of FROST and FROST2 with trusted key generation under the one-more discrete logarithm assumption (OMDL) in the random oracle model. \liz{Say anything about BLS?}
+\item Bellare, Crites, Komlo, Maller, Tessaro, and Zhu
+\item Crites, Komlo, and Maller introduced Sparkle, a three-round threshold Schnorr scheme, and proved its adaptive security for any corruption threshold $f < n$.
+\item Olaf \liz{Ideas used?}
+\item Crites, Komlo, Maller, Tessaro, Zhu proved the security of FROST under the algebraic one-more discrete logarithm assumption in the ROM.  This is original to the present submission.
+\end{enumerate}
+
+\parhead{Random Oracle Model~\cite{BellareR93}}. The random oracle model is an idealized model that treats a hash function $\Hash$ as an oracle in the following way.  When queried on an input in the domain of $\Hash$, the oracle first checks if it has an entry stored in its table for this input.  If so, it returns this value.  If not, it samples an output in the codomain of $\Hash$ uniformly at random, stores the input-output pair in its table, and returns the output.
+
+\parhead{Algebraic Group Model~\cite{FuchsbauerKL18}}. The algebraic group model is an idealized model that places the following restriction on the computation of the adversary. An adversary is \emph{algebraic} if for every group element $Z \in \Gr = \langle g \rangle$ that it outputs, it is required to output a representation $\vec{a} = (a_0, a_1, a_2, \dots)$ such that $Z = g^{a_0} \prod {Y_i}^{a_i}$, where $Y_1, Y_2, \dots \in \Gr$ are group elements that the adversary has seen thus far.
+Intuitively, this captures the notion that an algorithm should know how it computes its outputs from the values it has received as input so far.
+The AGM is reminiscent of the generic group model (GGM), but lies somewhere between it and the standard model.
 
 \subsection{HARTS}
 

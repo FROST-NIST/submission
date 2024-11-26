@@ -10,7 +10,9 @@ Participants should store their key shares securely, following common secure
 practice to store secrets, such as making them readable only by the owner and
 storing them encrypted by the operating system keyring or keychain.
 
-(TODO: should we mention the possibility of recovering shares?)
+Note that it is technically possible for a participant to recover a lost share
+with the help of a threshold of other participants. However, this feature is
+not covered by this submission.
 
 
 \subsection{Managing State}
@@ -41,13 +43,13 @@ using some cryptographic mechanism. We suggest using the Noise protocol (TODO:
 ref), specifically the one-way ``X'' pattern which will not add additional
 rounds to the FROST protocol. If higher security assurances are needed (such as
 stronger forward secrecy), then the ``XK'' pattern might be used, but it adds an
-additional round between partipants and coordinator to complete the Noise
+additional round between participants and coordinator to complete the Noise
 handshake.
 
 \subsection{Known and Proposed Applications}
 
 It's worth pointing out that most of the proposed applications are not specific
-to FROST and could be accomplished by similar threshold signture schemes.
+to FROST and could be accomplished by similar threshold signature schemes.
 
 \begin{description}
     \item[Certificate Authorities.] Certificate issuers can use FROST to protect
@@ -66,4 +68,14 @@ to FROST and could be accomplished by similar threshold signture schemes.
     different cryptocurrencies can be built using FROST, where multiple
     distributed nodes manage bridged funds and can issue transfer in response
     to claims for the bridged currency.
+    \item[Code Signing.] In many scenarios, such as publishing an app to an
+    application store or publishing a software package to a package repository,
+    the authenticity of software is guaranteed by a digital signature. Thus, the
+    digital signature controls the distribution of software to million of users,
+    and ensuring the security of the underlying private key is crucial to
+    prevent bad actors from publishing compromised version of those software.
+    FROST can help protecting that private key.
+    \item[WebAuthn.] The WebAuthn standard specifies mechanisms for
+    authenticating users into applications and services. FROST could help
+    protect the underlying private key for security-critical credentials.
 \end{description}

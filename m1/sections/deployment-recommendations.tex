@@ -1,0 +1,81 @@
+\section{Deployment Recommendations}\label{section:deployment-recommendations}
+
+% A set of deployment requirements and recommendations, including those
+% related to security. This section should also include a list of known and
+% proposed applications of the submitted threshold scheme(s).
+
+\subsection{Key Share Storage}
+
+Participants should store their key shares securely, following common secure
+practice to store secrets, such as making them readable only by the owner and
+storing them encrypted by the operating system keyring or keychain.
+
+Note that it is technically possible for a participant to recover a lost share
+with the help of a threshold of other participants. However, this feature is
+not covered by this submission.
+
+
+\subsection{Managing State}
+
+As detailed in Section~\ref{section:comparisons:statemanagement} participants must
+manage some state. In each FROST signing session, the participant must keep the
+nonces generated in the first round 1, which will be then read again in round 2.
+It is recommended that each signing session be assigned some sort of unique
+random session ID, so that each participant can map between the session ID and
+the nonces for that session. Additionally, nonces should be deleted after they
+are used. It is not recommended to persist nonces in long term storage unless
+strictly necessarily, to avoid the risk of accidental nonce misuse.
+
+\subsection{Communication Channels}
+
+FROST does not require authenticated nor encrypted channels, as detailed
+in Section~\ref{section:system-model}. However, authentication allows identifiable
+aborts, which allow pinpointing participants who are not following the protocol
+correctly; this can allow the exclusion of that participant for further signing
+rounds. Additionally, we expected that encrypted channels might be desired in
+many applications due to the private nature of messages being signed.
+
+To authenticate and possibly encrypt communications, we recommend that each
+participant should be issued a ``communication keypair'', and each participant
+must verify each other's communication public key by some out of band method.
+These keypairs can then bootstrap the authenticated and encrypted channels by
+using some cryptographic mechanism. We suggest using the Noise protocol (TODO:
+ref), specifically the one-way ``X'' pattern which will not add additional
+rounds to the FROST protocol. If higher security assurances are needed (such as
+stronger forward secrecy), then the ``XK'' pattern might be used, but it adds an
+additional round between participants and coordinator to complete the Noise
+handshake.
+
+\subsection{Known and Proposed Applications}
+
+It's worth pointing out that most of the proposed applications are not specific
+to FROST and could be accomplished by similar threshold signature schemes.
+
+\begin{description}
+    \item[Certificate Authorities.] Certificate issuers can use FROST to protect
+    issuance keys and make it harder for attackers to compromise a certificate
+    authority.
+    \item[Legally Binding Eletronic Signatures.] Many jurisdictions allow the
+    possibility of using electronic signatures to sign documents. FROST can
+    offer an alternative to help secure the critically important private key,
+    without needing to resort to self-managed hardware tokens or
+    externally-hosted keys inside hardware security modules.
+    \item[Cryptocurrency Wallets.] Wallets can use FROST to make them more
+    resilient to hacking. FROST is also useful for scenarios where an
+    organization need to manage a cryptocurrency wallet with the organization
+    funds and multiple persons are required to sign off on spends.
+    \item[Cryptocurrency Bridges.] Automated bridges which convert between
+    different cryptocurrencies can be built using FROST, where multiple
+    distributed nodes manage bridged funds and can issue transfer in response
+    to claims for the bridged currency.
+    \item[Code Signing.] In many scenarios, such as publishing an app to an
+    application store or publishing a software package to a package repository,
+    the authenticity of software is guaranteed by a digital signature. Thus, the
+    digital signature controls the distribution of software to million of users,
+    and ensuring the security of the underlying private key is crucial to
+    prevent bad actors from publishing compromised version of those software.
+    FROST can help protecting that private key.
+    \item[WebAuthn.] The WebAuthn standard specifies mechanisms for
+    authenticating users into applications and services. FROST could help
+    protect the underlying private key for security-critical credentials.
+\end{description}

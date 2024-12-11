@@ -155,7 +155,7 @@ The $3$ round schemes require the message to be fixed in the first or second rou
 A full theoretical and experimental break down of the communication complexity of $\frost$ is given in \cref{?}.
 In each signing session all parties:  send $2 \Gr$ and $1 \F$; and receive $2 k \Gr$ as well as the message and signing set.
 
-\subsection{State Management and Storage Requirements}
+\subsection{State Management and Storage Requirements}\label{section:comparisons:statemanagement}
 $\frost$ requires state management to ensure that:
 (1) secret randomness from the first round is available to the signer in the second round;
 (2) nonces from the first round are not used twice.

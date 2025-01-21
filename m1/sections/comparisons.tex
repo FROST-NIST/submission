@@ -284,32 +284,30 @@ $\text{ }$
 \subsubsection{Directly Used Building Blocks, Techniques, and Ideas}
 
 \begin{enumerate}
-\item \textbf{Random oracle model.}
-\item \textbf{Algebraic group model.} \liz{For full-ish adaptive security.}
 \item \textbf{Shamir secret sharing.}
 \item \textbf{Schnorr signatures.} Schnorr introduced the eponymous signature scheme in \cite{Schnorr91}. \liz{Maybe include patents and pull from FIPS-185-6.}
+\item \textbf{FROST.} Komlo and Goldberg introduced FROST, a two-round threshold Schnorr signature scheme, where the first round can be pre-processed. \liz{Define pre-processing.}
+\item \textbf{FROST RFC.}
+\end{enumerate}
+
+\subsubsection{Directly Used Proof Techniques}
+
+\begin{enumerate}
+\item \textbf{Random oracle model.}
+\item \textbf{Algebraic group model.} \liz{For full adaptive security.}
 \item \textbf{Technique of rewinding.} Pointcheval and Stern~\cite{PointchevalS00} proved that the Schnorr signature scheme is existentially unforgeable under chosen-message attacks (EUF-CMA)~\cite{GoldwasserMR88} in the random oracle model (ROM)~\cite{BellareR93} under the assumption that discrete logarithm problem is hard.\liz{cite?} The security proof relies on the technique of rewinding.~\liz{Who invented the technique of rewinding?}
 \item \textbf{General forking lemma.} Bellare and Neven~\cite{BellareN06} forking lemma (generalized, vs. what was done in PS00)
-\item \textbf{Schnorr in the AGM paper.} \liz{For full-ish adaptive security.}
-\item \textbf{MuSig.} (original and fix)
-% Two-round scheme appeared on eprint  Jan. 18, 2018. Fixed (3 rounds) on eprint on May 20, 2018.
-\item \textbf{ROS attack papers.} 2003,\cite{cryptoeprint:2018/417,DrijversEFKLNS19}, BLORR21. 
-\item \textbf{FROST.} Komlo and Goldberg introduced FROST, a two-round threshold Schnorr signature scheme, where the first round can be pre-processed. \liz{Define pre-processing.}
-% First online (CRYSP website) Jan. 7, 2020. First on eprint July 12, 2020.
-\item \textbf{DWMS.} Alper and Burdges~\cite{AlperB21} introduced the Delinearized Witness Multi-Signature (DWMS), a two-round Schnorr multi-signature (i.e., requiring $n$-out-of-$n$ signers), where the first round can be pre-processed.  They proved security in the random oracle model and algebraic group model under the one-more discrete logarithm assumption (OMDL) and the 2-entwined sum problem, a hardness problem that they introduce and prove in the algebraic group model under the discrete logarithm assumption.
-% First on eprint Oct. 9, 2020.  Revised July 15, 2021.
-\item \textbf{MuSig2.} Concurrently and independently, Nick, Ruffing, and Seurin introduced MuSig2~\cite{NickRS21}, the same construction as in \cite{AlperB21}, and prove security in the random oracle model and algebraic group model under the one-more discrete logarithm assumption \liz{Updated to AOMDL}.  They provide a second, slightly less efficient protocol that is proven secure in the random oracle model under OMDL using rewinding.
-AOMDL
-% First on eprint Oct. 14, 2020.  Revised July 6, 2021 and again on Oct. 20, 2023 (removed double forking lemma - back to BN06).
-
 \item \textbf{FROST2.} Crites, Komlo, and Maller~\cite{CritesKM21} introduced and proved the security of a variety of two- and three-round Schnorr threshold and multi-signature schemes.  In particular, they proposed a three-round Schnorr multi-signature SimpleMuSig and threshold signature SimpleTSig, where the first round can be pre-processed.  Key generation for SimpleTSig is performed using the DKG in~\cite{KomloG20}. \liz{Say more on this.} They proved the security of both schemes in the random oracle model under the discrete logarithm assumption. \liz{Say more on this.}  They then proposed a two-round Schnorr multi-signature SpeedyMuSig and an optimized version of FROST, called FROST2, which reduced the number of exponentiations required for signing and verification from $t$ to one.  Key generation is likewise performed using the DKG in~\cite{KomloG20}.
 ``They prove that FROST2 with PedPop is unforgeable in the ROM under the OMDL assumption and under the Schnorr
 knowledge of exponent assumption (Schnorr-KoE), which they introduce and justify in the algebraic group model (AGM)."
 \item \textbf{BTZ22.} Bellare, Tessaro, and Zhu~\cite{BellareTZ22} proved the security of FROST and FROST2, assuming key generation is performed using a trusted key generation algorithm, under the one-more discrete logarithm assumption (OMDL) in the random oracle model.
 \item \textbf{Crypto merge.} The paper of~\cite{BellareCKMTZ22} by Bellare, Crites, Komlo, Maller, Tessaro, and Zhu is the merge of \cite{BellareTZ22} and FROST2 from \cite{CritesKM21}.
+\item \textbf{Schnorr in the AGM paper.} \liz{For full adaptive security.}
 \item \textbf{Sparkle.} \liz{For adaptive security.} Crites, Komlo, and Maller~\cite{CritesKM23} presented Sparkle, a three-round threshold Schnorr scheme, and showed that it achieves several levels of security based on different corruption models and assumptions.  Specifically, they demonstrate that Sparkle is secure against (1) static corruption in the random oracle model if the discrete logarithm problem is hard, (2) $f/2$ adaptive corruption in the random oracle model if the AOMDL problem is hard, and (3) adaptive corruption of a full $f$ parties in the random oracle model and algebraic group model if the AOMDL problem is hard.  The adaptive security proofs do not rely secure erasure of secret state or the guessing argument \liz{Refer to section in NIST document that bans the guessing argument.}
-\item \textbf{FROST RFC.}
-\item \textbf{FROST AOMDL proof.} Crites, Komlo, Maller, Tessaro, Zhu proved the security of FROST under the algebraic one-more discrete logarithm assumption in the ROM.  This is original to the present submission.
+\item \textbf{New Hardness Assumption Paper.} (for full adaptive security)
+\item \textbf{Adaptive FROST paper.}
+\item \textbf{FROST AOMDL proof.} 
+%Crites, Komlo, Maller, Tessaro, Zhu proved the security of FROST under the algebraic one-more discrete logarithm assumption in the ROM.  This is original to the present submission.
 \end{enumerate}
 
 \parhead{Random Oracle Model~\cite{BellareR93}}. The random oracle model is an idealized model that treats a hash function $\Hash$ as an oracle in the following way.  When queried on an input in the domain of $\Hash$, the oracle first checks if it has an entry stored in its table for this input.  If so, it returns this value.  If not, it samples an output in the codomain of $\Hash$ uniformly at random, stores the input-output pair in its table, and returns the output.
@@ -318,7 +316,7 @@ knowledge of exponent assumption (Schnorr-KoE), which they introduce and justify
 Intuitively, this captures the notion that an algorithm should know how it computes its outputs from the values it has received as input so far.
 The AGM is reminiscent of the generic group model (GGM), but lies somewhere between it and the standard model.
 
-\subsubsection{Related Work}
+\subsubsection{Related Work - Not Directly Used}
 
 \begin{enumerate}
 \item Stinson and Strobl~\cite{StinsonS01} constructed \liz{the first?} threshold Schnorr signature scheme and proved it secure in the random oracle model under the discrete logarithm assumption. Signing requires performing a three-round distributed key generation protocol (DKG)~\cite{GennaroJKR07} \liz{Confirm we want this citation for defining DKG.} to generate the nonce for each signature, followed by one round to issue signature shares. \liz{Exactly 4 rounds? Say something about network assumptions?  FROST uses the technique of the coordinator node from SS01.}
@@ -326,8 +324,13 @@ The AGM is reminiscent of the generic group model (GGM), but lies somewhere betw
 \item Abe and Fehr~\cite{AbeF04} constructed a threshold Schnorr signature scheme also by using a three-round DKG for nonce generation.
 For security, they assume that the majority of parties are honest (i.e., $f < n/2$) and prove their scheme secure against up to $f$ adaptive corruptions. \liz{In the ROM under DL? What about static security? They also require strong network assumptions (synchronous broadcast).}
 \item Gennaro, Jarecki, Krawczyk and Rabin~\cite{GennaroJKR01} \liz{To Do: Differentiate the 3 GJKR papers.} proposed a threshold Schnorr signature scheme that was shown not to be secure under concurrent signing sessions.  Requires a synchronous network for unforgeability.
-\item ROAST: FROST3 \liz{Ideas not used? Or yes, for identifiable aborts/robustness?}
-\item Olaf
+\item \textbf{MuSig.} (original and fix)
+\item \textbf{ROS attack papers.} 2003,\cite{cryptoeprint:2018/417,DrijversEFKLNS19}, BLORR21. 
+\item \textbf{DWMS.} Alper and Burdges~\cite{AlperB21} introduced the Delinearized Witness Multi-Signature (DWMS), a two-round Schnorr multi-signature (i.e., requiring $n$-out-of-$n$ signers), where the first round can be pre-processed.  They proved security in the random oracle model and algebraic group model under the one-more discrete logarithm assumption (OMDL) and the 2-entwined sum problem, a hardness problem that they introduce and prove in the algebraic group model under the discrete logarithm assumption.
+\item \textbf{MuSig2.} Concurrently and independently, Nick, Ruffing, and Seurin introduced MuSig2~\cite{NickRS21}, the same construction as in \cite{AlperB21}, and prove security in the random oracle model and algebraic group model under the one-more discrete logarithm assumption \liz{Updated to AOMDL}.  They provide a second, slightly less efficient protocol that is proven secure in the random oracle model under OMDL using rewinding.
+AOMDL
+\item \textbf{ROAST: FROST3.} \liz{Ideas not used? Or yes, for identifiable aborts/robustness?}
+\item \textbf{Olaf}
 \end{enumerate}
 
 \subsection{HARTS}

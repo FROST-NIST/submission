@@ -3,7 +3,7 @@
 \section{Choices and Comparisons}\label{section:comparisons}
 
 We here give a rationale for design decisions and the chosen system model, as well as an explanation of known advantages and limitations compared to other options and approaches.
-$\frost$ is backwards compatible with any protocol using the FIPS186-5 verifier. 
+$\frost$ is backwards compatible with any protocol using the FIPS186-5 verifier.
 This is the NIST standardised Edwards-curve Digital Signature Algorithm (EdDSA) digital signature scheme \cite{EdDSA}.
 EdDSA is a variant of Schnorr signature based on twisted Edwards curves.
 No changes to existing implementations of the signature format or the verifier are required.
@@ -16,7 +16,7 @@ This includes
 	\item An unnamed protocol by Gennaro, Jarecki, Krawczyk and Rabin \cite{GennaroJKR01}
 	\item An unnamed protocol by Stinson and Strobl \cite{StinsonS01}
 	\item $\mathsf{2SCHNORR}$ by Nicolosi, Krohn, Dodis, and Mazi\`eres \cite{NicolosiKDM03}
-	\item $\mathsf{CLASSICS}$ and $\mathsf{ZEROS}$ by Makriyannis \cite{Makriyannis22}	
+	\item $\mathsf{CLASSICS}$ and $\mathsf{ZEROS}$ by Makriyannis \cite{Makriyannis22}
 	\item An unnamed protocol by Lindell \cite{Lindell22}
 	\item $\mathsf{ROAST}$ by Ruffing, Ronge, Jin, Schneider{-}Bensch, and Schr{\"{o}}der \cite{RuffingRJSS22}
 	\item $\mathsf{SPARKLE}$ by Crites, Komlo, and Maller \cite{CritesKM23}
@@ -45,13 +45,13 @@ Where applicable we follow the keys in the Call for Proposals.
 		\item (3) ``three" for $n = 3$;
 		\item  (S) ``small" for $4 \leq n \leq 8$;
 		\item  (M) ``medium" for $9 \leq n \leq 64$;
-		\item (L) ``large" for $65 \leq n \leq 1024$; 
+		\item (L) ``large" for $65 \leq n \leq 1024$;
 		\item (E) ``enormous" for $n > 1024$.
 	\end{itemize}
-	\item The corruption proportion $f/n$ can either be:  
+	\item The corruption proportion $f/n$ can either be:
 		\begin{itemize}
-			\item  (D) ``dishonest majority" for $f \geq n/2$; 
-			\item  (h) ``honest majority” for $f < n/2$; 
+			\item  (D) ``dishonest majority" for $f \geq n/2$;
+			\item  (h) ``honest majority” for $f < n/2$;
 			\item (H) “two-thirds honest majority” for $f < n/3$.
 	\end{itemize}
 	\item The assumptions can  be:
@@ -64,16 +64,16 @@ Where applicable we follow the keys in the Call for Proposals.
 			\item (G)  ``game based" for a game based security notion;
 			\item (S) ``simulation" for a simulation based security notion;
 			\item (AGM) ``algebraic group model" if the AGM is required.
-		\end{itemize} 
+		\end{itemize}
  	\item The liveness guarantees can be
  		\begin{itemize}
  			\item  (IA) ``identifiable abort" if cheating parties can be identified;
  			\item  (h) ``robust under honest majority” if robustness holds given $f < n/2$;
- 			\item (N) ``not robust against active adversaries". 
+ 			\item (N) ``not robust against active adversaries".
  		\end{itemize}
  	\item The adversary for all schemes we consider is active.  We write:
  		\begin{itemize}
- 			\item (U)  ``unknown" for no known positive or negative adaptive result; 
+ 			\item (U)  ``unknown" for no known positive or negative adaptive result;
  			\item (H) ``half" if adaptive security is provable for $f \leq \frac{k}{2}$
  			\item (F) ``full" for full adaptivity security i.e. adaptive security if provable for $f = k - 1$.
  		\end{itemize}
@@ -84,10 +84,10 @@ Where applicable we follow the keys in the Call for Proposals.
  	\end{itemize}
  	\item The distributed system and communication requirements can be ......
  	\item The key generation can be ......
-\end{itemize}   
+\end{itemize}
 
 \subsection{Concurrency}\label{section:comparisons:concurrency}
-$\frost$ as well as all other schemes in this comparison is concurrently secure.  
+$\frost$ as well as all other schemes in this comparison is concurrently secure.
 There are no restrictions on the number of sessions a polynomial time adversary can have open at the same time.
 This is a strict requirement in the call for proposals.
 
@@ -140,7 +140,7 @@ However there is also no known adaptive attack against $\frost$.
 	The proposed threshold schemes should be compatible with modular subprotocols / mechanisms for proactive (and reactive) recovery, which attempt to recover possibly corrupted parties back to an uncorrupted state. This is especially important to better handle a persistent mobile adversary that continuously attempts to corrupt more parties. With respect to refreshing secret shares, the solutions can be based on a modularized phase of secret-resharing (see T6), while also specifying the needed conditions (e.g., requirement of some initial/final agreement by a qualified quorum) for its integration.
 }
 
-There exist $3$ round schemes that provably fully adaptive \cite{} in the algebraic group model with non-programmable random oracles.  However there is no static or adaptive security reduction of $\frost$ in this model.  
+There exist $3$ round schemes that provably fully adaptive \cite{} in the algebraic group model with non-programmable random oracles.  However there is no static or adaptive security reduction of $\frost$ in this model.
 
 \subsection{Number of Rounds}\label{section:comparisons:rounds}
 $\frost$ has $2$ signing rounds and allows the message to be determined in the second round of signing.
@@ -191,7 +191,7 @@ However  $\frost$ can be instantiated with any simulatable distributed key gener
 	\begin{tabular}{c c c c c c c c}
 		\toprule
 		Scheme & \ $n$ \ & $f/n$ & Assumption & Ideal & Live & Adversary & Rounds \\ \midrule
-		GJKR01 \cite{GennaroJKR01}& & & & & & & \\ 
+		GJKR01 \cite{GennaroJKR01}& & & & & & & \\
 		SS01 \cite{StinsonS01} & & & & &  & & \\
 		$\mathsf{2SCHNORR}$ & & & & & &  & \\
 		$\mathsf{CLASSICS}$ & & & & & & & \\
@@ -203,7 +203,7 @@ However  $\frost$ can be instantiated with any simulatable distributed key gener
 		$\mathsf{SPRINT}$ & & & & & &  & \\
 		$\mathsf{ARTIC}$ & & & & & &  & \\
 		$\mathsf{HARTS}$ & & & & & &  & \\
-		\midrule 
+		\midrule
 		$\mathsf{FROST}$ & E & D & $\aomdl$ & ROM & IA, N & U & $2$ \\
 		\bottomrule
 	\end{tabular}
@@ -236,7 +236,7 @@ Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by hav
 \item[Reliability.] FROST relies on a reliable network channel, meaning that all protocol messages are delivered correctly, exactly once, and in the intended order.
 
 \item[Broadcast.] FROST does not rely on a broadcast channel; an adversary may send inconsistent protocol messages to honest parties, even within the same signing session.  Furthermore, authenticated channels are not assumed either, so an adversary can decide which protocol messages to send to an honest party on behalf of another honest party.
-\liz{What about authenticated channels between the coordinator and signers?} 
+\liz{What about authenticated channels between the coordinator and signers?}
 
 \end{description}
 
@@ -252,7 +252,7 @@ A threshold signature scheme is said to be \emph{secure} if, with overwhelming p
 
 \item[Active.] FROST is secure against an active adversary who may corrupt up to $f = t-1$ out of a threshold of $t$ parties (where $t \leq n$), controlling them to arbitrarily deviate from the prescribed multi-party protocol.   As described in Section~\ref{sec:unforgeability}, FROST achieves TS-(S)UF-3 security~\cite{BellareCKMTZ22} (without authenticated channels).
 
-\item[Adaptive.] The stronger adaptive adversary is able to decide which parties to corrupt after observing some of the protocol execution. 
+\item[Adaptive.] The stronger adaptive adversary is able to decide which parties to corrupt after observing some of the protocol execution.
 Upon corruption, the adversary learns the secret key and private state for the corrupted party in all open signing sessions.
 Currently, there is no known proof of adaptive security for FROST.
 
@@ -264,97 +264,97 @@ Currently, there is no known security proof for FROST capturing a mobile adversa
 
 \subsection{HARTS}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/HARTS_abstract.png}
-    \caption{HARTS abstract claiming ``strong synchrony assumptions" in other works.}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/HARTS_abstract.png}
+%    \caption{HARTS abstract claiming ``strong synchrony assumptions" in other works.}
+%\end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/HARTS_table.png}
-    \caption{FROST and Sparkle are \textbf{not} forgeable in an asynchronous network, whereas GJKR is \textbf{forgeable}.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/HARTS_async_defn.png}
-    \caption{HARTS definition of asynchrony. It is not clear what ``fully secure and operational" means.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/HARTS_appendix.png}
-    \caption{A more accurate description, buried in the appendix of HARTS, which says that synchrony is needed to restore robustness.  However, it appears to claim synchrony is needed even for just identifiable aborts.}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/HARTS_table.png}
+%    \caption{FROST and Sparkle are \textbf{not} forgeable in an asynchronous network, whereas GJKR is \textbf{forgeable}.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/HARTS_async_defn.png}
+%    \caption{HARTS definition of asynchrony. It is not clear what ``fully secure and operational" means.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/HARTS_appendix.png}
+%    \caption{A more accurate description, buried in the appendix of HARTS, which says that synchrony is needed to restore robustness.  However, it appears to claim synchrony is needed even for just identifiable aborts.}
+%\end{figure}
 
 \newpage
 
 \subsection{SPRINT: https://eprint.iacr.org/2023/427}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/SPRINT_IA.png}
-    \caption{SPRINT, like HARTS, identifies synchrony as being needed for identifiable aborts.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/SPRINT_FROST.png}
-    \caption{SPRINT is a bit unclear about asynchrony.}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/SPRINT_IA.png}
+%    \caption{SPRINT, like HARTS, identifies synchrony as being needed for identifiable aborts.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/SPRINT_FROST.png}
+%    \caption{SPRINT is a bit unclear about asynchrony.}
+%\end{figure}
 
 \newpage
 
 \subsection{ROAST: https://eprint.iacr.org/2022/550}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/ROAST_abstract.png}
-    \caption{ROAST abstract says prior schemes assume synchrony.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/ROAST_first_async.png}
-    \caption{ROAST claiming to be first asynchronous threshold Schnorr scheme.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/ROAST_IA.png}
-    \caption{Synchrony is required for the IA property of FROST.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/ROAST_sync_reqd.png}
-    \includegraphics[width=1\linewidth]{images/ROAST_sync_reqd2.png}
-    \caption{ROAST claims prior works required synchrony \textbf{whether they are robust or not}.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/ROAST_wrapper.png}
-    \caption{The trivial wrapper for FROST to make it robust is asynchronous.}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/ROAST_abstract.png}
+%    \caption{ROAST abstract says prior schemes assume synchrony.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/ROAST_first_async.png}
+%    \caption{ROAST claiming to be first asynchronous threshold Schnorr scheme.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/ROAST_IA.png}
+%    \caption{Synchrony is required for the IA property of FROST.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/ROAST_sync_reqd.png}
+%    \includegraphics[width=1\linewidth]{images/ROAST_sync_reqd2.png}
+%    \caption{ROAST claims prior works required synchrony \textbf{whether they are robust or not}.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/ROAST_wrapper.png}
+%    \caption{The trivial wrapper for FROST to make it robust is asynchronous.}
+%\end{figure}
 
 \newpage
 
 \subsection{Original FROST Paper}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/FROST_async.png}
-    \caption{This says only pre-processing FROST is asynchronous.}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{images/FROST_aggregator.png}
-    \includegraphics[width=1\linewidth]{images/FROST_aggregator2.png}
-    \caption{FROST needs to be fully two rounds if broadcast is used instead of a signature aggregator.}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/FROST_async.png}
+%    \caption{This says only pre-processing FROST is asynchronous.}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=1\linewidth]{images/FROST_aggregator.png}
+%    \includegraphics[width=1\linewidth]{images/FROST_aggregator2.png}
+%    \caption{FROST needs to be fully two rounds if broadcast is used instead of a signature aggregator.}
+%\end{figure}
 
 
 

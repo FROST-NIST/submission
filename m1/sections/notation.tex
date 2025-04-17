@@ -26,3 +26,59 @@ L_i^{(S)}(x) = \prod_{j \neq i } \frac{x-x_j}{x_i - x_j}.
 Given $(x_i, y_i)_{i \in [\thresh]}$, we can implicitly evaluate the corresponding polynomial $f$ at any point~$x$ as
 \[ f(x) = \sum_{k \in [\thresh]} f(x_k) \cdot L^{(S)}_k(x). \]
 
+
+\subsection{Building Blocks}
+
+We next give notation for building blocks that we refer to in the remainder of
+this document.
+
+\begin{definition}[Schnorr signatures~\cite{Schnorr91}] \label{defn:schnorr}
+The Schnorr signature scheme consists of PPT algorithms $(\Setup, \KeyGen, \Sign, \Verify)$ defined as follows:
+
+  \begin{itemize}[itemsep=1mm]
+
+    \item $\Setup(1^\secp) \rightarrow \pp$:
+    On input $1^\secp$, run $(\Gr, p, g) \gets \GroupGen(\usecp)$ and select a hash function $\Hash: \{0,1\}^* \rightarrow \Zp$. Output public parameters $\pp \gets ((\Gr, p, g), \Hash)$ (which are given implicitly as input to all other algorithms).
+
+  \item $\KeyGen() \rightarrow (\pk, \sk)$:
+  Sample a secret key $\sk \randpick \Zp$ and compute the public key as $\pk \gets g^{\sk}$.
+    Output key pair $(\pk, \sk)$.
+
+  \item $\Sign(\sk, m) \rightarrow \sigma$:
+    On input a secret key $\sk$ and a message $m$, sample a nonce $r \randpick \Zp$. Then, compute a
+     commitment $R \gets g^r$,  challenge $c \gets \Hash(\pk, m, R)$, and
+    response $z \gets r + c \cdot \sk$. Output signature $\sigma \gets (R,z)$.
+%    \jnote{I find $\gets$ confusing for deterministic assignment\ldots} \liz{How about $:=$?} \jnote{yes. And then randomized assignment can lose the dollar sign}
+%      \chelsea{my vote is to keep the dollar sign, please}
+
+  \item $\Verify(\pk, m, \sigma) \rightarrow 0/1$:
+  On input a public key $\pk$,
+    a message $m$, and a purported signature $\sigma = (R, z)$, compute $c
+    \leftarrow \Hash(\pk, m, R)$ and output $1$ (accept) if $R \cdot \pk^c = g^z$; else, output $0$ (reject).
+
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Shamir secret sharing~\cite{Shamir79}] \label{defn:shamir}
+The $(\thresh, n)$-Shamir secret sharing scheme consists of algorithms $(\IssueShares, \allowbreak \Recover)$, defined as follows:
+
+\begin{itemize}[itemsep=1mm]
+    \item $\IssueShares(\sk, n, \thresh) \rightarrow \{ (1, \sk_1), \ldots, (n, \sk_n)\}$:
+      On input a secret $\sk$, number of participants $n$, and threshold $\thresh$, first, define a polynomial $f(Z) = \sk + a_1 + a_2 Z^2 + \cdots + a_{\tcor} Z^{\tcor}$ by sampling $a_1, \ldots, a_{\tcor} \randpick \Zp$. Then, set each participant's share $\sk_i, i \in \set{n}$, to be the evaluation of $f(i)$:
+    \begin{equation*} \label{eq:issueshares}
+        \sk_i \gets \sk + \sum_{j \in \set{\tcor}} a_j i^j.
+    \end{equation*}
+    Output $\{(i, \sk_i) \}_{i \in \set{n}}$.
+
+  \item $ \Recover(\thresh, \{ (i, \sk_i)\}_{ i \in \S}) \rightarrow \bot / \sk$:
+    On input threshold $\thresh$ and a set of shares $\{(i, \sk_i) \}_{i \in \S}$,
+    output $\bot$ if $\S \not\subseteq \set{n}$ or if $\lvert \S \rvert < \thresh$. Otherwise, recover $\sk$ as follows:
+    \begin{equation*} \label{eq:recovershares}
+      \sk \gets \sum_{i \in \S} \lambda_i \sk_i
+    \end{equation*}
+    where the Lagrange coefficient for the set
+$\S$ is defined as
+\[ \lambda_i = \prod_{j \in \S, j\neq i} \frac{j}{j - i} .\]
+%(This is the evaluation of $L_i(0)$ in Equation~\ref{eqn:lagrange}.)
+\end{itemize}
+\end{definition}

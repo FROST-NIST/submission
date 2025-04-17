@@ -1,0 +1,28 @@
+\section{Notation}
+
+We let $\secp \in \N$ denote the security parameter, and let
+$\negl$ denote a negligible function.
+For a non-empty set $S$, let $x\randpick S$ denote sampling
+a uniform element of $S$ and assigning it to~$x$.
+We use $\set{n}$ to represent the $\{1,\ldots,n \}$ and $[i..j]$ to represent $\{i,\ldots,j \}$.
+We represent vectors as $\vec{a} = ( a_1, \ldots, a_n )$.
+
+PPT stands for ``probabilistic polynomial time.''  Algorithms are randomized unless explicitly noted otherwise.
+We let $y \gets A(x;\rho)$ denote running algorithm $A$ on
+input $x$ and randomness $\rho$ and assigning its output to $y$.
+Let $y \randpick A(x)$
+denote $y \gets A(x;\rho)$ for a uniform~$\rho$.
+The set of values that have non-zero probability of being output by $A$ on input $x$ is denoted by $[A(x)]$.
+We let $\GroupGen$ be a PPT algorithm that takes as input $\usecp$ and outputs a description $(\Gr, p, g)$ of a group $\Gr$ of order a prime $p>2^\secp$, and a generator $g$ of~$\Gr$.
+
+\medskip\noindent{\bf Polynomial interpolation.}
+A polynomial $f(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{\tcor} x^{\tcor}$
+of degree $\tcor$ over a field $\F$ can be interpolated from its value on $\thresh$ points.
+For  distinct elements~$S = \{x_1, \ldots, x_{\thresh}\}$ in $\F$,
+define the Lagrange polynomial
+\begin{equation}\label{eqn:lagrange}
+L_i^{(S)}(x) = \prod_{j \neq i } \frac{x-x_j}{x_i - x_j}.
+\end{equation}
+Given $(x_i, y_i)_{i \in [\thresh]}$, we can implicitly evaluate the corresponding polynomial $f$ at any point~$x$ as
+\[ f(x) = \sum_{k \in [\thresh]} f(x_k) \cdot L^{(S)}_k(x). \]
+

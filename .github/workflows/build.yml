@@ -32,7 +32,7 @@ jobs:
       - run: mv m1/main.pdf output/m1.pdf
 
       - name: Upload PDFs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frost-nist-${{ github.ref == 'refs/heads/main' && 'main' || format('pr-{0}', github.event.number) }}
           path: output/

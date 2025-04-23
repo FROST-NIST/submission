@@ -280,9 +280,11 @@ Currently, there is no known security proof for FROST capturing a mobile adversa
 %Table: multi-sig or threshold, online/offline rounds, static security assumptions, adaptive security assumptions, corruption threshold, rewinding?
 %
 $\text{ }$
-\liz{Reinterpreting this as mainly a clarification of potentially patented techniques/ideas.}
+\liz{We discussed reinterpreting this as mainly a clarification of potentially patented techniques/ideas.}
 
-\subsubsection{Directly Used Building Blocks, Techniques, and Ideas}
+    \liz{We have a couple of papers with 1 author not on the submitters' team, e.g., Mihir and Al.}
+
+\subsubsection{Directly Used Building Blocks, Techniques, and Ideas for the FROST Protocol.}
 
 \begin{enumerate}
 \item \textbf{Shamir secret sharing.}
@@ -291,24 +293,30 @@ $\text{ }$
 \item \textbf{FROST RFC.}
 \end{enumerate}
 
-\subsubsection{Directly Used Proof Techniques}
+\subsubsection{Directly Used Building Blocks, Techniques, and Ideas for Proving the Security of FROST.}
 
-\begin{enumerate}
-\item \textbf{Random oracle model.}
-\item \textbf{Algebraic group model.} \liz{For full adaptive security.}
-\item \textbf{Technique of rewinding.} Pointcheval and Stern~\cite{PointchevalS00} proved that the Schnorr signature scheme is existentially unforgeable under chosen-message attacks (EUF-CMA)~\cite{GoldwasserMR88} in the random oracle model (ROM)~\cite{BellareR93} under the assumption that discrete logarithm problem is hard.\liz{cite?} The security proof relies on the technique of rewinding.~\liz{Who invented the technique of rewinding?}
-\item \textbf{General forking lemma.} Bellare and Neven~\cite{BellareN06} forking lemma (generalized, vs. what was done in PS00)
-\item \textbf{FROST2.} Crites, Komlo, and Maller~\cite{CritesKM21} introduced and proved the security of a variety of two- and three-round Schnorr threshold and multi-signature schemes.  In particular, they proposed a three-round Schnorr multi-signature SimpleMuSig and threshold signature SimpleTSig, where the first round can be pre-processed.  Key generation for SimpleTSig is performed using the DKG in~\cite{KomloG20}. \liz{Say more on this.} They proved the security of both schemes in the random oracle model under the discrete logarithm assumption. \liz{Say more on this.}  They then proposed a two-round Schnorr multi-signature SpeedyMuSig and an optimized version of FROST, called FROST2, which reduced the number of exponentiations required for signing and verification from $t$ to one.  Key generation is likewise performed using the DKG in~\cite{KomloG20}.
+\begin{enumerate}  
+\item \textbf{Discrete logarithm assumption (i).}  Diffie and Hellman~\cite{DiffieH76} defined the discrete logarithm (DL) assumption in cryptography. \liz{Definitions section?}
+\item \textbf{Random oracle model (i).}  Bellare and Rogaway~\cite{BellareR93} introduced the idealized security model called the random oracle model (ROM), defined at the end of this section.  
+%The static security of FROST and adaptive security up to $f/2$ corruptions have been proven in the ROM.
+\item \textbf{Security of Schnorr signatures (i).}  Pointcheval and Stern~\cite{PointchevalS00} proved that the Schnorr signature scheme is existentially unforgeable under chosen-message attacks (EUF-CMA)~\cite{GoldwasserMR88} under the DL assumption in the ROM.  
+%The security proof relies on the technique of rewinding.~\liz{Who invented the technique of rewinding?}
+\item \textbf{General forking lemma.} Bellare and Neven~\cite{BellareN06} forking lemma (generalized, vs. what was done in PS00). 
+\item \textbf{Local forking lemma.} \liz{BTZ FROST proof uses variant of the local forking lemma.  ``The extra looseness is due to needing to ensure an extra condition when rewinding."}
+\item \textbf{Algebraic group model (i).}  Fuchsbauer, Kiltz, and Loss~\cite{FuchsbauerKL18} introduced the idealized security model called the algebraic group model (AGM), defined at the end of this section.  
+%The adaptive security of FROST above $f/2$ corruptions has been proven in the algebraic group model (AGM) and ROM.
+\item \textbf{One-more discrete logarithm assumption (i).}  Bellare, Namprempre, Pointcheval, and Semanko~\cite{BellareNPS03} defined the one-more discrete logarithm (OMDL) assumption.
+\item \textbf{Algebraic OMDL assumption (i).}  Nick, Ruffing, and Seurin \liz{cite} defined the algebraic OMDL assumption.  \liz{Discussion somewhere on the difference?}
+\item \textbf{FROST2 (ii).} Crites, Komlo, and Maller~\cite{CritesKM21} introduced and proved the security of a variety of two- and three-round Schnorr threshold and multi-signature schemes. \liz{Define multi-signature somewhere.} In particular, the authors proposed a three-round Schnorr multi-signature SimpleMuSig and threshold signature SimpleTSig, where the first round can be pre-processed.  Key generation for SimpleTSig is performed using the DKG in~\cite{KomloG20}. \liz{Say more on this.} The authors proved the security of both schemes under the DL assumption in the ROM. \liz{Not strictly true.  Schnorr + SchnorrKoE.  Say more on this.}  They then proposed a two-round Schnorr multi-signature SpeedyMuSig and an optimized version of FROST, called FROST2, which reduced the number of exponentiations required for signing and verification from $t$ to one.  \liz{Discussion of the FROST variants somewhere.} Key generation is likewise performed using the DKG in~\cite{KomloG20}.
 ``They prove that FROST2 with PedPop is unforgeable in the ROM under the OMDL assumption and under the Schnorr
 knowledge of exponent assumption (Schnorr-KoE), which they introduce and justify in the algebraic group model (AGM)."
-\item \textbf{BTZ22.} Bellare, Tessaro, and Zhu~\cite{BellareTZ22} proved the security of FROST and FROST2, assuming key generation is performed using a trusted key generation algorithm, under the one-more discrete logarithm assumption (OMDL) in the random oracle model.
-\item \textbf{Crypto merge.} The paper of~\cite{BellareCKMTZ22} by Bellare, Crites, Komlo, Maller, Tessaro, and Zhu is the merge of \cite{BellareTZ22} and FROST2 from \cite{CritesKM21}.
-\item \textbf{Schnorr in the AGM paper.} \liz{For full adaptive security.}
-\item \textbf{Sparkle.} \liz{For adaptive security.} Crites, Komlo, and Maller~\cite{CritesKM23} presented Sparkle, a three-round threshold Schnorr scheme, and showed that it achieves several levels of security based on different corruption models and assumptions.  Specifically, they demonstrate that Sparkle is secure against (1) static corruption in the random oracle model if the discrete logarithm problem is hard, (2) $f/2$ adaptive corruption in the random oracle model if the AOMDL problem is hard, and (3) adaptive corruption of a full $f$ parties in the random oracle model and algebraic group model if the AOMDL problem is hard.  The adaptive security proofs do not rely secure erasure of secret state or the guessing argument \liz{Refer to section in NIST document that bans the guessing argument.}
-\item \textbf{New Hardness Assumption Paper.} (for full adaptive security)
-\item \textbf{Adaptive FROST paper.}
-\item \textbf{FROST AOMDL proof.} 
-%Crites, Komlo, Maller, Tessaro, Zhu proved the security of FROST under the algebraic one-more discrete logarithm assumption in the ROM.  This is original to the present submission.
+\item \textbf{BTZ22 (ii).} Bellare, Tessaro, and Zhu~\cite{BellareTZ22} proved the security of FROST and FROST2, assuming key generation is performed using a trusted key generation algorithm.  FROST is proven strongly unforgeable (TS-SUF-3 secure) under the OMDL assumption in the ROM. FROST is proven strongly unforgeable (TS-SUF-2 secure) under the same assumptions.  \liz{Talk about hierarchy somewhere?}
+\item \textbf{BCKMTZ22 (ii).} Bellare, Crites, Komlo, Maller, Tessaro, and Zhu~\cite{BellareCKMTZ22} is the merge of \cite{BellareTZ22} and FROST2 from \cite{CritesKM21}.
+\item \textbf{Security of Schnorr signatures in the AGM (i).}  Fuchsbauer, Plouviez, and Seurin~\cite{FuchsbauerPS20} proved the EUF-CMA security of Schnorr signatures under the DL assumption in the AGM and ROM. \liz{Discussion of tightness somewhere?}
+\item \textbf{Sparkle+ (ii).} Crites, Komlo, and Maller~\cite{CritesKM23} presented Sparkle+, a three-round threshold Schnorr signature scheme with one round of pre-processing.  The authors showed that Sparkle+ achieves several levels of security based on different corruption models and assumptions.  Specifically, they demonstrate that Sparkle+ is secure against (1) static corruption in the random oracle model if the discrete logarithm problem is hard, (2) $f/2$ adaptive corruption in the random oracle model if the AOMDL problem is hard, and (3) adaptive corruption of a full $f$ parties in the AGM and ROM if the AOMDL problem is hard.  The adaptive security proofs do not rely secure erasure of secret state or the guessing argument \liz{Refer to section in NIST document that bans the guessing argument, page 72 of new NIST call.}  \liz{To Do: Update Sparkle+ full adaptive claim and add Sparkle later.} 
+\item \textbf{A plausible attack on adaptive security (ii).}  Crites and Stewart show that a large class of threshold Schnorr signature schemes, including FROST, cannot be proven adaptively secure for corruption thresholds above $f/2$ without additionally assuming the hardness of new computational (search) problem, which they define.
+\item \textbf{Adaptive security of FROST (ii).}  Crites, Katz, Komlo, Tessaro, and Zhu define the computational assumption needed to prove FROST adaptively secure above $f/2$ corruptions, called the low-dimensional vector representation (LDVR) assumption.  FROST is secure against (1) $f/2$ adaptive corruption in the ROM  if the AOMDL problem is hard, and (2) adaptive corruption of a full $f$ parties in the AGM and ROM if the AOMDL and LDVR problems are hard.  The adaptive security proofs do not rely secure erasure of secret state or the guessing argument.
+In the same work, the authors proved the static security of FROST under the algebraic one-more discrete logarithm assumption in the ROM.
 \end{enumerate}
 
 \parhead{Random Oracle Model~\cite{BellareR93}}. The random oracle model is an idealized model that treats a hash function $\Hash$ as an oracle in the following way.  When queried on an input in the domain of $\Hash$, the oracle first checks if it has an entry stored in its table for this input.  If so, it returns this value.  If not, it samples an output in the codomain of $\Hash$ uniformly at random, stores the input-output pair in its table, and returns the output.

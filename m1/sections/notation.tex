@@ -1,5 +1,25 @@
 \section{Notation}
 
+We give a summary of our notation and where it differs from the notation in the NIST call in Table~\ref{table:notation-comp}.
+
+\begin{table}[htbp]
+	\centering
+	\begin{tabular}{c | c | c }
+		\toprule
+    NIST Notation & Our Notation & Meaning \\
+    f & \thresh  & Corruption threshold \\
+    f-1 & \tcor & Number of supported corruptions \\
+		\bottomrule
+	\end{tabular}
+	\caption{\label{table:comparisons}
+		Table of comparisons with our notation versus the notation in the NIST
+    call.
+	 }
+\end{table}
+
+
+\subsection{General Notation}
+
 We let $\secp \in \N$ denote the security parameter, and let
 $\negl$ denote a negligible function.
 For a non-empty set $S$, let $x\randpick S$ denote sampling

@@ -35,6 +35,9 @@ denote $y \gets A(x;\rho)$ for a uniform~$\rho$.
 The set of values that have non-zero probability of being output by $A$ on input $x$ is denoted by $[A(x)]$.
 We let $\GroupGen$ be a PPT algorithm that takes as input $\usecp$ and outputs a description $(\Gr, p, g)$ of a group $\Gr$ of order a prime $p>2^\secp$, and a generator $g$ of~$\Gr$.
 
+\medskip\noindent{\bf Group Generation.} Let $\GroupGen$ be a polynomial-time algorithm that takes as input a security parameter $\usecp$ and outputs a group description $(\Gr, p, g)$ consisting of a group $\Gr$ of order $p$, where $p$ is a $\secp$-bit prime, and a generator $g$ of $\Gr$.
+
+
 \medskip\noindent{\bf Polynomial interpolation.}
 A polynomial $f(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{\tcor} x^{\tcor}$
 of degree $\tcor$ over a field $\F$ can be interpolated from its value on $\thresh$ points.
@@ -102,3 +105,121 @@ $\S$ is defined as
 %(This is the evaluation of $L_i(0)$ in Equation~\ref{eqn:lagrange}.)
 \end{itemize}
 \end{definition}
+
+\subsection{Assumptions}
+
+\parhead{Random Oracle Model~\cite{BellareR93}}. The random oracle model is an idealized model that treats a hash function $\Hash$ as an oracle in the following way.  When queried on an input in the domain of $\Hash$, the oracle first checks if it has an entry stored in its table for this input.  If so, it returns this value.  If not, it samples an output in the codomain of $\Hash$ uniformly at random, stores the input-output pair in its table, and returns the output.
+
+\parhead{Algebraic Group Model~\cite{FuchsbauerKL18}}. The algebraic group model is an idealized model that places the following restriction on the computation of the adversary. An adversary is \emph{algebraic} if for every group element $Z \in \Gr = \langle g \rangle$ that it outputs, it is required to output a representation $\vec{a} = (a_0, a_1, a_2, \dots)$ such that $Z = g^{a_0} \prod {Y_i}^{a_i}$, where $Y_1, Y_2, \dots \in \Gr$ are group elements that the adversary has seen thus far.
+Intuitively, this captures the notion that an algorithm should know how it computes its outputs from the values it has received as input so far.
+The AGM is reminiscent of the generic group model (GGM), but lies somewhere between it and the standard model.
+
+\begin{figure}[t]
+\begin{pchstack}[boxed,center,space=1em]
+\begin{pchstack}
+  \procedure{$\main$ $\G^{\dl}_{\A}(\secp)$}{
+  (\Gr, p , g) \gets \GroupGen(\usecp) \\
+  x \randpick \Zp;~X \gets g^{x} \\
+  x' \randpick \A((\Gr, p , g), X) \\
+	\pcif x' = x \\
+	\pcind \pcreturn 1\\
+	\pcreturn 0
+  }
+\end{pchstack}
+
+\begin{pchstack}
+  \vline
+      \pchspace
+  \procedure{$\main$ $\G^{\thresh\hbox{-}\colorbox{light-gray}{\scriptsize $\mathsf{a}$}\omdl}_{\A}(\secp)$ }{
+  (\Gr, p , g) \gets \GroupGen(\usecp) \\
+  \Qdl \gets \emptyset \\
+  q \gets 0 \\
+  \pcfor i \in [0..\tcor] \pcdo \\
+  \pcind x_i \randpick \Zp;~X_i \gets g^{x_i} \\
+  \pcind \Qdl[X_i] = x_i \\
+  \vec{x} \gets (x_0, \ldots, x_\tcor) \\
+  \vec{X} \gets (X_0, X_1, \dots, X_{\tcor}) \\
+  \vec{x'} \gets \A^{\BigO^{\dl}}((\Gr, p, g), \vec{X})  \\
+  	\pcif \vec{x'} = \vec{x} \\
+	\pcind \pcreturn 1\\
+	\pcreturn 0
+  }
+  \pchspace
+  \procedure{$\BigO^{\dl}(X, \colorbox{light-gray}{$\alpha, \{\beta_i\}_{i=0}^{\tcor}$} )$\  }{
+    \pccomment{\colorbox{light-gray}{$X = g^{\alpha} \prod_{i=0}^{\tcor} X_i^{\beta_i}$}} \\
+   \pcreturn \bot~\pcif q = \tcor \\
+  q \gets q + 1 \\
+  %\colorbox{light-gray}{$\pcreturn \bot\ \pcif Q[X] = \bot$} \\
+  \colorbox{light-gray}{$x \gets \alpha + \sum_{i=0}^{\tcor} x_i \beta_i$} \\
+  \colorbox{light-gray}{$\pcreturn x$} \\
+  x \gets \mathsf{dlog}(X) \\
+  \pcreturn x
+  }
+\end{pchstack}
+
+\end{pchstack}
+    \caption{The Discrete Logarithm (DL), One-More Discrete Logarithm (OMDL), and Algebraic One-More Discrete Logarithm (AOMDL) games.
+    The differences between the OMDL and AOMDL games are highlighted in gray.
+    The key distinction is that in the AOMDL game,
+    the adversary can only query its discrete logarithm oracle on linear combinations of its challenge group elements;
+    in the OMDL game, the environment must return the discrete logarithm of an
+    arbitrary group element. $\mathsf{dlog}$ is an algorithm that finds the discrete logarithm of an arbitrary group element $X$ base $g$.}
+    \label{fig:dl-omdl}
+    \hrulefill
+\end{figure}
+
+\begin{assumption}[Discrete Logarithm Assumption (DL)]\label{ass:dl}
+Let $\GroupGen$ be a group generator that outputs $(\Gr, p, g)$.
+Let the advantage of an adversary $\A$ playing the discrete logarithm game,
+$\G^{\dl}_{\A}(\secp)$, as defined in Figure~\ref{fig:dl-omdl}, be as follows:
+%
+\[
+  \advant{$\dl$}{\A}(\secp) = \Pr[\G^{\dl}_{\A}(\secp) = 1]
+\]
+%
+The discrete logarithm assumption holds relative to $\GroupGen$ if for all PPT adversaries $\A$,
+$\advant{$\dl$}{\A}(\secp) $ is negligible.
+\end{assumption}
+
+\begin{assumption}[One-More Discrete Logarithm Assumption (OMDL)]\label{ass:omdl}
+\emph{\cite{BellareNPS03}}
+\textcolor{blue}{Let $\GroupGen$ be a group generator that outputs $(\Gr, p, g)$.}
+Let the advantage of an adversary $\A$ playing the $\thresh$-one-more discrete logarithm game,
+$\G^{\thresh\hbox{-}\omdl}_{\A}(\secp)$, as defined in Figure~\ref{fig:dl-omdl}, be as follows:
+%
+\[
+  \advant{$\thresh\hbox{-}\omdl$}{\A}(\secp) = \Pr[\G^{\thresh\hbox{-}\omdl}_{\A}(\secp) = 1]
+\]
+%
+The one-more discrete logarithm assumption holds \textcolor{blue}{relative to $\GroupGen$} if for all PPT adversaries $\A$,
+$\advant{$\thresh\hbox{-}\omdl$}{\A}(\secp) $ is negligible.
+\end{assumption}
+%
+\parhead{Algebraic One-More Discrete Logarithm Assumption (AOMDL).}
+The algebraic one-more discrete logarithm assumption (AOMDL) was introduced formally by Jonas, Ruffing, and Seurin for proving the security of the two-round Schnorr multi-signature scheme MuSig2~\cite{NickRS21}.
+We use it as an assumption to prove the security of $\frost$, but it actually (implicitly) appears elsewhere in the literature where OMDL is used~\cite{BellareP02,NicolosiKDM03,BellareS07,FuchsbauerPS20}.
+
+As in the standard  OMDL game, the AOMDL adversary is given as input a group description $(\Gr, p , g)$ and a set of challenge group elements $(X_0, X_1, \dots, X_{\tcor})$ and has access to a discrete logarithm solution oracle $\odlsol$ that it may query up to $\tcor$ times.
+The adversary wins the game if it computes the discrete logarithms $(x_0, x_1, \dots, x_{\tcor})$ without exceeding $\tcor$ queries to $\odlsol$ (i.e., the adversary is able to compute ``one more" discrete logarithm).
+The difference in the AOMDL game is that, when the adversary queries the $\odlsol$ oracle on a group element $X$, it must provide an algebraic representation $(\alpha, \{ \beta_i \}_{i=0}^{\tcor})$ of $X$ relative to the generator $g$ and challenge group elements $(X_0, X_1, \dots, X_{\tcor})$,
+so that $X = g^{\alpha} \prod_{i=0}^{\tcor} X_i^{\beta_i}$.
+The $\odlsol$ oracle may then use this representation to compute $\alpha + \sum_{i=0}^{\tcor} \beta_i x_i$.
+This is in contrast to standard OMDL, where the $\odlsol$ oracle may be queried for discrete logarithms of arbitrary group elements.
+Thus, AOMDL is a weaker assumption than standard OMDL, because it is falsifiable.
+Indeed, not only does the algorithm verifying the correctness of the AOMDL solutions run in polynomial time, but the $\odlsol$ algorithm does as well.
+
+\begin{assumption}[Algebraic One-More Discrete Logarithm Assumption]\label{ass:aomdl}
+\emph{\cite{NickRS21}}
+\textcolor{blue}{Let $\GroupGen$ be a group generator that outputs $(\Gr, p, g)$.}
+Let the advantage of an adversary $\A$ playing the $\thresh$-algebraic one-more discrete logarithm game,
+$\G^{\thresh\hbox{-}\aomdl}_{\A}(\secp)$, as defined in Figure~\ref{fig:dl-omdl}, be as follows:
+%
+\[
+  \advant{$\thresh\hbox{-}\aomdl$}{\A}(\secp) = \Pr[\G^{\thresh\hbox{-}\aomdl}_{\A}(\secp) = 1]
+\]
+%
+The algebraic one-more discrete logarithm assumption holds \textcolor{blue}{relative to $\GroupGen$} if for all PPT adversaries $\A$,
+$\advant{$\thresh\hbox{-}\aomdl$}{\A}(\secp) $ is negligible.
+\end{assumption}
+
+

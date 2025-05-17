@@ -2,28 +2,30 @@ from .communication import Traffic
 from .processor import Ops
 
 def print_complexity_tables(coordinator, participant):
-    print('       Memory | Round | Elements | Scalars | Arb bytes |  Cost  |')
-    print('--------------|-------|----------|---------|-----------|--------|')
+    print('       Memory | Round | Elements | Scalars | Arb bytes |  Cost  | Allocation causing max')
+    print('--------------|-------|----------|---------|-----------|--------|-----------------------')
     for round in [0, 1, 2]:
-        round_stored = coordinator.mem.max_stored[round]
-        print('  {} |   {}   |   {:4}   |   {:3}   |   {:5}   | {:6} |'.format(
+        (round_stored, name) = coordinator.mem.max_stored[round]
+        print('  {} |   {}   |   {:4}   |   {:3}   |   {:5}   | {:6} | {}'.format(
             'Coordinator' if round == 0 else '           ',
             round,
             round_stored.elements,
             round_stored.scalars,
             round_stored.bytes,
             coordinator.mem.cost_model.count(round_stored),
+            name,
         ))
-    print('--------------|-------|----------|---------|-----------|--------|')
+    print('--------------|-------|----------|---------|-----------|--------|-----------------------')
     for round in [0, 1, 2]:
-        round_stored = participant.mem.max_stored[round]
-        print('  {} |   {}   |   {:4}   |   {:3}   |   {:5}   | {:6} |'.format(
+        (round_stored, name) = participant.mem.max_stored[round]
+        print('  {} |   {}   |   {:4}   |   {:3}   |   {:5}   | {:6} | {}'.format(
             'Participant' if round == 0 else '           ',
             round,
             round_stored.elements,
             round_stored.scalars,
             round_stored.bytes,
             participant.mem.cost_model.count(round_stored),
+            name,
         ))
     print()
     print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k | H blocks |')
@@ -108,7 +110,7 @@ def latex_memory_complexity_table(coordinator, participant):
 		Memory & Round & Elements & Scalars & Arb bytes & Cost \\\\ \midrule
 '''
     for round in [0, 1, 2]:
-        round_stored = coordinator.mem.max_stored[round]
+        (round_stored, name) = coordinator.mem.max_stored[round]
         s += '		{} & {} & {} & {} & {} & {} \\\\\n'.format(
             'Coordinator' if round == 0 else '           ',
             round,
@@ -119,7 +121,7 @@ def latex_memory_complexity_table(coordinator, participant):
         )
     s += '		\midrule\n'
     for round in [0, 1, 2]:
-        round_stored = participant.mem.max_stored[round]
+        (round_stored, name) = participant.mem.max_stored[round]
         s += '		{} & {} & {} & {} & {} & {} \\\\\n'.format(
             'Participant' if round == 0 else '           ',
             round,

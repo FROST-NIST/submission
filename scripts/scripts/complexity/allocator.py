@@ -50,7 +50,7 @@ class Stored:
 #
 # - Per node
 # - Allocates and frees points, scalars, etc.
-# - Tracks high water mark.
+# - Tracks high water mark and what the allocation was that caused it.
 #   - Per round (and thus overall).
 class MemoryAllocator:
     def __init__(self, cost_model):
@@ -65,16 +65,16 @@ class MemoryAllocator:
     def set_round(self, round):
         self.round = round
 
-    def update_max_stored(self):
+    def update_max_stored(self, name):
         if self.round in self.max_stored:
-            if self.stored.is_greater_than(self.max_stored[self.round], self.cost_model):
-                self.max_stored[self.round] = deepcopy(self.stored)
+            if self.stored.is_greater_than(self.max_stored[self.round][0], self.cost_model):
+                self.max_stored[self.round] = (deepcopy(self.stored), name)
         else:
-            self.max_stored[self.round] = deepcopy(self.stored)
+            self.max_stored[self.round] = (deepcopy(self.stored), name)
 
     def alloc_bytes(self, name, size, value=None):
         self.stored.alloc_bytes(size)
-        self.update_max_stored()
+        self.update_max_stored(name)
         return Allocation(lambda: self.free_bytes(size), name, value)
 
     def free_bytes(self, size):
@@ -82,7 +82,7 @@ class MemoryAllocator:
 
     def alloc_element(self, name):
         self.stored.alloc_element()
-        self.update_max_stored()
+        self.update_max_stored(name)
         return Allocation(self.free_element, name, None)
 
     def free_element(self):
@@ -90,7 +90,7 @@ class MemoryAllocator:
 
     def alloc_scalar(self, name, value=None):
         self.stored.alloc_scalar()
-        self.update_max_stored()
+        self.update_max_stored(name)
         return Allocation(self.free_scalar, name, value)
 
     def free_scalar(self):

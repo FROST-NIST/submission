@@ -107,7 +107,7 @@ def print_complexity_tables(coordinator, participant):
 def latex_memory_complexity_table(coordinator, participant):
     s = '''	\\begin{tabular}{c c c c c c}
 		\\toprule
-		Memory & Round & Elements & Scalars & Arb bytes & Cost \\\\ \midrule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\\\ \\midrule
 '''
     for round in [0, 1, 2]:
         (round_stored, name) = coordinator.mem.max_stored[round]
@@ -119,7 +119,7 @@ def latex_memory_complexity_table(coordinator, participant):
             round_stored.bytes,
             coordinator.mem.cost_model.count(round_stored),
         )
-    s += '		\midrule\n'
+    s += '		\\midrule\n'
     for round in [0, 1, 2]:
         (round_stored, name) = participant.mem.max_stored[round]
         s += '		{} & {} & {} & {} & {} & {} \\\\\n'.format(
@@ -130,12 +130,12 @@ def latex_memory_complexity_table(coordinator, participant):
             round_stored.bytes,
             participant.mem.cost_model.count(round_stored),
         )
-    return s + '		\\bottomrule\n	\end{tabular}\n'
+    return s + '		\\bottomrule\n	\\end{tabular}\n'
 
 def latex_computational_complexity_table(coordinator, participant):
     s = '''	\\begin{tabular}{c c c c c c c c}
 		\\toprule
-		Computation & Round & $A \\times A$ & $A^k$  & $B^k$  & $k + k$ & $k \\times k$ & H blocks \\\\ \midrule
+		Computation & Round & $A \\times A$ & $A^k$  & $B^k$  & $k + k$ & $k \\times k$ & H blocks \\\\ \\midrule
 '''
     # There is no computation in "round 0".
     for round in [1, 2]:
@@ -159,7 +159,7 @@ def latex_computational_complexity_table(coordinator, participant):
         coord_total_ops.scalar_muls,
         coord_total_ops.hash_blocks,
     )
-    s += '		\midrule\n'
+    s += '		\\midrule\n'
     for round in [1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
         s += '		{} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
@@ -181,12 +181,12 @@ def latex_computational_complexity_table(coordinator, participant):
         participant_total_ops.scalar_muls,
         participant_total_ops.hash_blocks,
     )
-    return s + '		\\bottomrule\n	\end{tabular}\n'
+    return s + '		\\bottomrule\n	\\end{tabular}\n'
 
 def latex_communication_complexity_table(coordinator, participant):
     s = '''	\\begin{tabular}{c c c c}
 		\\toprule
-		Communication & Round & Download & Upload \\\\ \midrule
+		Communication & Round & Download & Upload \\\\ \\midrule
 '''
     # There is no communication in "round 0".
     for round in [1, 2]:
@@ -202,7 +202,7 @@ def latex_communication_complexity_table(coordinator, participant):
         coord_total_traffic.upload,
         coord_total_traffic.download,
     )
-    s += '		\midrule\n'
+    s += '		\\midrule\n'
     for round in [1, 2]:
         round_traffic = participant.traffic.get(round, Traffic())
         s += '		{} & {} & {} & {} \\\\\n'.format(
@@ -216,7 +216,7 @@ def latex_communication_complexity_table(coordinator, participant):
         participant_total_traffic.download,
         participant_total_traffic.upload,
     )
-    return s + '		\\bottomrule\n	\end{tabular}\n'
+    return s + '		\\bottomrule\n	\\end{tabular}\n'
 
 def replace_at_marker(contents, marker, replacement):
     begin_marker = '% BEGIN {}\n'.format(marker)

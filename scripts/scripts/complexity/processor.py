@@ -9,10 +9,11 @@ class Ops:
         self.element_multi_exps = []
         self.scalar_adds = 0
         self.scalar_muls = 0
+        self.scalar_exps = 0
         self.hash_blocks = 0
 
     def __repr__(self):
-        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} variable-base multi-exponentiations with at most {} terms, {} scalar adds, {} scalar muls, {} hash blocks'.format(
+        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} variable-base multi-exponentiations with at most {} terms, {} scalar adds, {} scalar muls, {} scalar exponentiations, {} hash blocks'.format(
             self.element_muls,
             self.element_exps,
             self.element_base_exps,
@@ -20,6 +21,7 @@ class Ops:
             max(self.element_multi_exps),
             self.scalar_adds,
             self.scalar_muls,
+            self.scalar_exps,
             self.hash_blocks,
         )
 
@@ -31,6 +33,7 @@ class Ops:
         ret.element_multi_exps = self.element_multi_exps + other.element_multi_exps
         ret.scalar_adds = self.scalar_adds + other.scalar_adds
         ret.scalar_muls = self.scalar_muls + other.scalar_muls
+        ret.scalar_exps = self.scalar_exps + other.scalar_exps
         ret.hash_blocks = self.hash_blocks + other.hash_blocks
         return ret
 
@@ -56,8 +59,11 @@ class Ops:
         self.scalar_muls += 1
 
     def scalar_div(self):
-        # TODO: Cost model of scalar division
+        # a/b (mod p) = a * b^(-1) (mod p)
+        #             = a * b^(-1) * b^(p-1) (mod p) by Fermat's Little Theorem
+        #             = a * b^(p-2) (mod p)
         self.scalar_muls += 1
+        self.scalar_exps += 1
 
     def process_hash_blocks(self, n):
         self.hash_blocks += n

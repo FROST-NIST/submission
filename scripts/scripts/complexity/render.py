@@ -28,11 +28,16 @@ def print_complexity_tables(coordinator, participant):
             name,
         ))
     print()
-    print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k | H blocks |')
-    print('--------------|-------|-------|------|------|-------|-------|----------|')
+    used_multiexp = coordinator.cpu.use_multi_exponentiation or participant.cpu.use_multi_exponentiation
+    print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k | H blocks |{}'.format(
+        ' Multiexp lengths' if used_multiexp else '',
+    ))
+    print('--------------|-------|-------|------|------|-------|-------|----------|{}'.format(
+        '-----------------' if used_multiexp else '',
+    ))
     for round in [0, 1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
+        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |{}'.format(
             'Coordinator' if round == 0 else '           ',
             round,
             round_ops.element_muls,
@@ -41,20 +46,24 @@ def print_complexity_tables(coordinator, participant):
             round_ops.scalar_adds,
             round_ops.scalar_muls,
             round_ops.hash_blocks,
+            ' {}'.format(round_ops.element_multi_exps) if coordinator.cpu.use_multi_exponentiation else '',
         ))
     coord_total_ops = sum(coordinator.cpu.ops.values(), start=Ops())
-    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
+    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |{}'.format(
         coord_total_ops.element_muls,
         coord_total_ops.element_exps,
         coord_total_ops.element_base_exps,
         coord_total_ops.scalar_adds,
         coord_total_ops.scalar_muls,
         coord_total_ops.hash_blocks,
+        ' {}'.format(coord_total_ops.element_multi_exps) if coordinator.cpu.use_multi_exponentiation else '',
     ))
-    print('--------------|-------|-------|------|------|-------|-------|----------|')
+    print('--------------|-------|-------|------|------|-------|-------|----------|{}'.format(
+        '-----------------' if used_multiexp else '',
+    ))
     for round in [0, 1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
+        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |{}'.format(
             'Participant' if round == 0 else '           ',
             round,
             round_ops.element_muls,
@@ -63,15 +72,17 @@ def print_complexity_tables(coordinator, participant):
             round_ops.scalar_adds,
             round_ops.scalar_muls,
             round_ops.hash_blocks,
+            ' {}'.format(round_ops.element_multi_exps) if participant.cpu.use_multi_exponentiation else '',
         ))
     participant_total_ops = sum(participant.cpu.ops.values(), start=Ops())
-    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |'.format(
+    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |   {:4}   |{}'.format(
         participant_total_ops.element_muls,
         participant_total_ops.element_exps,
         participant_total_ops.element_base_exps,
         participant_total_ops.scalar_adds,
         participant_total_ops.scalar_muls,
         participant_total_ops.hash_blocks,
+        ' {}'.format(participant_total_ops.element_multi_exps) if participant.cpu.use_multi_exponentiation else '',
     ))
     print()
     print('Communication | Round | Download |  Upload  |')

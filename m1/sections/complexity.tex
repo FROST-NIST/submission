@@ -24,12 +24,21 @@ We will use the following notation:
 	\item $P$: actual number of participants.
 \end{itemize}
 
+We assume a hub-and-spoke model for the coordinator. This has the benefit of
+also reflecting the analytic complexity of a protocol instantiation without a
+coordinator role, in which every participant is connected to and communicating
+with all other participants. In that scenario, each participant's round and
+communication complexity is replaced with the coordinator's, their memory
+complexity is the maximum of either, and their computational complexity is the
+sum of both.
+
 \subsection{Round complexity}
 
-FROST requires two rounds to execute a signing session. When using a central
-coordinator, each participant receives $1$ inbound message and sends $1$
-outbound message per round, while the coordinator correspondingly sends $P$
-outbound messages and receives $P$ inbound messages per round.
+FROST requires two rounds to execute a signing session. Participants can operate
+independently of each other in both rounds, and only need to communicate with
+the coordinator. As such, each participant receives $1$ inbound message and
+sends $1$ outbound message per round, while the coordinator correspondingly
+sends $P$ outbound messages and receives $P$ inbound messages per round.
 
 \subsection{Communication complexity}
 
@@ -41,17 +50,27 @@ session at this stage. Each participant sends back 2 encoded group elements.
 In round 2, each participant receives $2P$ encoded group elements and $P$
 encoded scalars, and sends back a single encoded scalar.
 
-Communication complexity at the coordinator scales linearly in the number of
-participants: the coordinator downloads $2P$ encoded group elements at the end
-of round 1, broadcasts $2P^2$ encoded group elements and $P^2$ encoded scalars
-at the beginning of round 2, and downloads $P$ encoded scalars at the end of
-round 2.
+Communication complexity at the coordinator scales quadratically in the number
+of participants: the coordinator downloads $2P$ encoded group elements at
+the end of round 1, broadcasts $2P^2$ encoded group elements and $P^2$ encoded
+scalars at the beginning of round 2, and downloads $P$ encoded scalars at the
+end of round 2.
 
 Note that while the coordinator sends $P$ outbound messages in round 1, the only
 information that the protocol requires be conveyed is that a signing round is
 starting (as noted above for participants). Empty messages are suitable for this
 purpose from an analytic complexity perspective; in a real implementation there
 would be some overhead due to message framing.
+
+The information broadcast by the coordinator at the beginning of round 2 is
+identical for all participants. The communication complexity at the coordinator
+itself can therefore be reduced from quadratic to linear with the aid of an
+authenticated broadcast channel that performs the fan-out on its behalf.
+However, this shifts the quadratic cost from the coordinator to the broadcast
+channel; while this may be of interest to concrete implementations, it does not
+fundamentally alter the cost. Therefore for the purpose of analytic complexity
+we consider the coordinator's boundary to be drawn around any broadcast channel
+it may be using.
 
 \begin{table}
 	\centering

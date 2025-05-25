@@ -48,6 +48,18 @@ round 2.
 \begin{table}
 	\centering
 % BEGIN communication-3-5-3-128
+	\begin{tabular}{c c c c}
+		\toprule
+		Communication & Round & Download & Upload \\ \midrule
+		Coordinator & 1 & 192 & 0 \\
+		            & 2 & 96 & 864 \\
+		            & Total & 288 & 864 \\
+		\midrule
+		Participant & 1 & 0 & 64 \\
+		            & 2 & 288 & 32 \\
+		            & Total & 288 & 96 \\
+		\bottomrule
+	\end{tabular}
 % END communication-3-5-3-128
 	\caption{Communication complexity for 3-of-5 FROST with 3 participants at the 128-bit security level.}
 \end{table}
@@ -55,6 +67,18 @@ round 2.
 \begin{table}
 	\centering
 % BEGIN communication-6-10-8-224
+	\begin{tabular}{c c c c}
+		\toprule
+		Communication & Round & Download & Upload \\ \midrule
+		Coordinator & 1 & 912 & 0 \\
+		            & 2 & 456 & 10944 \\
+		            & Total & 1368 & 10944 \\
+		\midrule
+		Participant & 1 & 0 & 114 \\
+		            & 2 & 1368 & 57 \\
+		            & Total & 1368 & 171 \\
+		\bottomrule
+	\end{tabular}
 % END communication-6-10-8-224
 	\caption{Communication complexity for 6-of-10 FROST with 8 participants at the 224-bit security level.}
 \end{table}
@@ -62,6 +86,18 @@ round 2.
 \begin{table}
 	\centering
 % BEGIN communication-600-1000-700-128
+	\begin{tabular}{c c c c}
+		\toprule
+		Communication & Round & Download & Upload \\ \midrule
+		Coordinator & 1 & 44800 & 0 \\
+		            & 2 & 22400 & 47040000 \\
+		            & Total & 67200 & 47040000 \\
+		\midrule
+		Participant & 1 & 0 & 64 \\
+		            & 2 & 67200 & 32 \\
+		            & Total & 67200 & 96 \\
+		\bottomrule
+	\end{tabular}
 % END communication-600-1000-700-128
 	\caption{Communication complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level.}
 \end{table}
@@ -88,6 +124,18 @@ TODO: Explain that the tables show the "high water" mark.
 \begin{table}
 	\centering
 % BEGIN memory-3-5-3-128
+	\begin{tabular}{c c c c c c}
+		\toprule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
+		Coordinator & 0 & 6 & 3 & 0 & 672 \\
+		            & 1 & 6 & 3 & 192 & 864 \\
+		            & 2 & 12 & 6 & 576 & 1920 \\
+		\midrule
+		Participant & 0 & 6 & 2 & 0 & 640 \\
+		            & 1 & 8 & 4 & 64 & 960 \\
+		            & 2 & 12 & 7 & 576 & 1952 \\
+		\bottomrule
+	\end{tabular}
 % END memory-3-5-3-128
 	\caption{Memory complexity for 3-of-5 FROST with 3 participants at the 128-bit security level. The cost is in bytes of memory allocated.}
 \end{table}
@@ -95,6 +143,18 @@ TODO: Explain that the tables show the "high water" mark.
 \begin{table}
 	\centering
 % BEGIN memory-6-10-8-224
+	\begin{tabular}{c c c c c c}
+		\toprule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
+		Coordinator & 0 & 11 & 8 & 0 & 2337 \\
+		            & 1 & 11 & 8 & 912 & 3249 \\
+		            & 2 & 27 & 16 & 1789 & 7318 \\
+		\midrule
+		Participant & 0 & 11 & 2 & 0 & 1995 \\
+		            & 1 & 13 & 4 & 114 & 2565 \\
+		            & 2 & 27 & 12 & 1789 & 7090 \\
+		\bottomrule
+	\end{tabular}
 % END memory-6-10-8-224
 	\caption{Memory complexity for 6-of-10 FROST with 8 participants at the 224-bit security level. The cost is in bytes of memory allocated.}
 \end{table}
@@ -102,6 +162,18 @@ TODO: Explain that the tables show the "high water" mark.
 \begin{table}
 	\centering
 % BEGIN memory-600-1000-700-128
+	\begin{tabular}{c c c c c c}
+		\toprule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
+		Coordinator & 0 & 1001 & 700 & 0 & 118496 \\
+		            & 1 & 1001 & 700 & 44800 & 163296 \\
+		            & 2 & 2401 & 1400 & 67488 & 342784 \\
+		\midrule
+		Participant & 0 & 1001 & 2 & 0 & 96160 \\
+		            & 1 & 1003 & 4 & 64 & 96480 \\
+		            & 2 & 2401 & 704 & 67488 & 320512 \\
+		\bottomrule
+	\end{tabular}
 % END memory-600-1000-700-128
 	\caption{Memory complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level. The cost is in bytes of memory allocated.}
 \end{table}
@@ -127,6 +199,18 @@ its muls etc. for a specific algorithm in the table (e.g. Pippenger).
 \begin{table}
 	\centering
 % BEGIN computational-3-5-3-128
+	\begin{tabular}{c c c c c c c c c c c c c}
+		\toprule
+		Computation & Round & $\mathsf{Read}_A$ & $\mathsf{Write}_A$ & $A \times A$ & $A^k$  & $B^k$  & $\mathsf{Read}_k$ & $\mathsf{Write}_k$ & $k + k$ & $k \times k$ & $k^n$ & H blocks \\ \midrule
+		Coordinator & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		            & 2 & 6 & 7 & 6 & 3 & 0 & 3 & 15 & 3 & 0 & 0 & 10 \\
+		            & Total & 6 & 7 & 6 & 3 & 0 & 3 & 15 & 3 & 0 & 0 & 10 \\
+		\midrule
+		Participant & 1 & 0 & 2 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 0 & 2 \\
+		            & 2 & 6 & 9 & 6 & 3 & 0 & 3 & 7 & 4 & 8 & 1 & 11 \\
+		            & Total & 6 & 11 & 6 & 3 & 2 & 3 & 9 & 4 & 8 & 1 & 13 \\
+		\bottomrule
+	\end{tabular}
 % END computational-3-5-3-128
 	\caption{Computational complexity for 3-of-5 FROST with 3 participants at the 128-bit security level.}
 \end{table}
@@ -134,6 +218,18 @@ its muls etc. for a specific algorithm in the table (e.g. Pippenger).
 \begin{table}
 	\centering
 % BEGIN computational-6-10-8-224
+	\begin{tabular}{c c c c c c c c c c c c c}
+		\toprule
+		Computation & Round & $\mathsf{Read}_A$ & $\mathsf{Write}_A$ & $A \times A$ & $A^k$  & $B^k$  & $\mathsf{Read}_k$ & $\mathsf{Write}_k$ & $k + k$ & $k \times k$ & $k^n$ & H blocks \\ \midrule
+		Coordinator & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		            & 2 & 16 & 17 & 16 & 8 & 0 & 8 & 80 & 8 & 0 & 0 & 36 \\
+		            & Total & 16 & 17 & 16 & 8 & 0 & 8 & 80 & 8 & 0 & 0 & 36 \\
+		\midrule
+		Participant & 1 & 0 & 2 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 0 & 2 \\
+		            & 2 & 16 & 19 & 16 & 8 & 0 & 8 & 17 & 9 & 18 & 1 & 37 \\
+		            & Total & 16 & 21 & 16 & 8 & 2 & 8 & 19 & 9 & 18 & 1 & 39 \\
+		\bottomrule
+	\end{tabular}
 % END computational-6-10-8-224
 	\caption{Computational complexity for 6-of-10 FROST with 8 participants at the 224-bit security level.}
 \end{table}
@@ -141,6 +237,18 @@ its muls etc. for a specific algorithm in the table (e.g. Pippenger).
 \begin{table}
 	\centering
 % BEGIN computational-600-1000-700-128
+	\begin{tabular}{c c c c c c c c c c c c c}
+		\toprule
+		Computation & Round & $\mathsf{Read}_A$ & $\mathsf{Write}_A$ & $A \times A$ & $A^k$  & $B^k$  & $\mathsf{Read}_k$ & $\mathsf{Write}_k$ & $k + k$ & $k \times k$ & $k^n$ & H blocks \\ \midrule
+		Coordinator & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		            & 2 & 1400 & 1401 & 1400 & 700 & 0 & 700 & 491400 & 700 & 0 & 0 & 1927 \\
+		            & Total & 1400 & 1401 & 1400 & 700 & 0 & 700 & 491400 & 700 & 0 & 0 & 1927 \\
+		\midrule
+		Participant & 1 & 0 & 2 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 0 & 2 \\
+		            & 2 & 1400 & 1403 & 1400 & 700 & 0 & 700 & 1401 & 701 & 1402 & 1 & 1928 \\
+		            & Total & 1400 & 1405 & 1400 & 700 & 2 & 700 & 1403 & 701 & 1402 & 1 & 1930 \\
+		\bottomrule
+	\end{tabular}
 % END computational-600-1000-700-128
 	\caption{Computational complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level.}
 \end{table}

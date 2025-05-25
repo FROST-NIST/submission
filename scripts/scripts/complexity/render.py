@@ -6,9 +6,9 @@ def print_complexity_tables(coordinator, participant):
     print('--------------|-------|----------|---------|-----------|--------|-----------------------')
     for round in [0, 1, 2]:
         (round_stored, name) = coordinator.mem.max_stored[round]
-        print('  {} |   {}   |   {:4}   |   {:3}   |   {:5}   | {:6} | {}'.format(
+        print('  {} | {:^5} |   {:4}   |   {:3}   |   {:5}   | {:6} | {}'.format(
             'Coordinator' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_stored.elements,
             round_stored.scalars,
             round_stored.bytes,
@@ -18,9 +18,9 @@ def print_complexity_tables(coordinator, participant):
     print('--------------|-------|----------|---------|-----------|--------|-----------------------')
     for round in [0, 1, 2]:
         (round_stored, name) = participant.mem.max_stored[round]
-        print('  {} |   {}   |   {:4}   |   {:3}   |   {:5}   | {:6} | {}'.format(
+        print('  {} | {:^5} |   {:4}   |   {:3}   |   {:5}   | {:6} | {}'.format(
             'Participant' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_stored.elements,
             round_stored.scalars,
             round_stored.bytes,
@@ -37,9 +37,9 @@ def print_complexity_tables(coordinator, participant):
     ))
     for round in [0, 1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+        print('  {} | {:^5} | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
             'Coordinator' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_ops.element_reads,
             round_ops.element_writes,
             round_ops.element_muls,
@@ -73,9 +73,9 @@ def print_complexity_tables(coordinator, participant):
     ))
     for round in [0, 1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+        print('  {} | {:^5} | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
             'Participant' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_ops.element_reads,
             round_ops.element_writes,
             round_ops.element_muls,
@@ -109,9 +109,9 @@ def print_complexity_tables(coordinator, participant):
     print('--------------|-------|----------|----------|')
     for round in [0, 1, 2]:
         round_traffic = sum([p.traffic.get(round, Traffic()) for p in coordinator.participants], start=Traffic())
-        print('  {} |   {}   |  {:5}   | {:8} |'.format(
+        print('  {} | {:^5} |  {:5}   | {:8} |'.format(
             'Coordinator' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_traffic.upload,
             round_traffic.download,
         ))
@@ -123,9 +123,9 @@ def print_complexity_tables(coordinator, participant):
     print('--------------|-------|----------|----------|')
     for round in [0, 1, 2]:
         round_traffic = participant.traffic.get(round, Traffic())
-        print('  {} |   {}   |  {:5}   | {:8} |'.format(
+        print('  {} | {:^5} |  {:5}   | {:8} |'.format(
             'Participant' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_traffic.download,
             round_traffic.upload,
         ))
@@ -144,7 +144,7 @@ def latex_memory_complexity_table(coordinator, participant):
         (round_stored, name) = coordinator.mem.max_stored[round]
         s += '		{} & {} & {} & {} & {} & {} \\\\\n'.format(
             'Coordinator' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_stored.elements,
             round_stored.scalars,
             round_stored.bytes,
@@ -155,7 +155,7 @@ def latex_memory_complexity_table(coordinator, participant):
         (round_stored, name) = participant.mem.max_stored[round]
         s += '		{} & {} & {} & {} & {} & {} \\\\\n'.format(
             'Participant' if round == 0 else '           ',
-            round,
+            'Setup' if round == 0 else round,
             round_stored.elements,
             round_stored.scalars,
             round_stored.bytes,

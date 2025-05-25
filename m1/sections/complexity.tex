@@ -10,11 +10,11 @@
 % functional dependence on configurable parameters, e.g., security strength,
 % number of parties and the thresholds.
 
-In the following sections we will refer to three rounds:
+In the following sections we will refer to three phases:
 \begin{itemize}
-	\item "Round 0" denotes any state that entities need to maintain between signing
-  sessions. This is only relevant to memory complexity. TODO: Call this Setup.
-  \item "Round 1" and "round 2" denote the actual signing rounds.
+	\item "Setup" denotes any state that entities need to maintain between
+	signing sessions. This is only relevant to memory complexity.
+	\item "Round 1" and "round 2" denote the individual signing rounds.
 \end{itemize}
 
 We will use the following notation:
@@ -112,7 +112,7 @@ would be some overhead due to message framing.
 
 \subsection{Memory complexity}
 
-In "round 0" (before the start of a signing session), the coordinator and
+In the setup phase (before the start of a signing session), the coordinator and
 participants need to store $N + 1$ group elements in memory, corresponding to
 the group information. Participants additionally need to store 2 scalars: one
 representing their identity within the signing group, and the other being their
@@ -135,11 +135,11 @@ TODO: Explain that the tables show the "high water" mark.
 	\begin{tabular}{c c c c c c}
 		\toprule
 		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
-		Coordinator & 0 & 6 & 3 & 0 & 672 \\
+		Coordinator & Setup & 6 & 3 & 0 & 672 \\
 		            & 1 & 6 & 3 & 192 & 864 \\
 		            & 2 & 12 & 6 & 576 & 1920 \\
 		\midrule
-		Participant & 0 & 6 & 2 & 0 & 640 \\
+		Participant & Setup & 6 & 2 & 0 & 640 \\
 		            & 1 & 8 & 4 & 64 & 960 \\
 		            & 2 & 12 & 7 & 576 & 1952 \\
 		\bottomrule
@@ -154,11 +154,11 @@ TODO: Explain that the tables show the "high water" mark.
 	\begin{tabular}{c c c c c c}
 		\toprule
 		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
-		Coordinator & 0 & 11 & 8 & 0 & 2337 \\
+		Coordinator & Setup & 11 & 8 & 0 & 2337 \\
 		            & 1 & 11 & 8 & 912 & 3249 \\
 		            & 2 & 27 & 16 & 1789 & 7318 \\
 		\midrule
-		Participant & 0 & 11 & 2 & 0 & 1995 \\
+		Participant & Setup & 11 & 2 & 0 & 1995 \\
 		            & 1 & 13 & 4 & 114 & 2565 \\
 		            & 2 & 27 & 12 & 1789 & 7090 \\
 		\bottomrule
@@ -173,11 +173,11 @@ TODO: Explain that the tables show the "high water" mark.
 	\begin{tabular}{c c c c c c}
 		\toprule
 		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
-		Coordinator & 0 & 1001 & 700 & 0 & 118496 \\
+		Coordinator & Setup & 1001 & 700 & 0 & 118496 \\
 		            & 1 & 1001 & 700 & 44800 & 163296 \\
 		            & 2 & 2401 & 1400 & 67488 & 342784 \\
 		\midrule
-		Participant & 0 & 1001 & 2 & 0 & 96160 \\
+		Participant & Setup & 1001 & 2 & 0 & 96160 \\
 		            & 1 & 1003 & 4 & 64 & 96480 \\
 		            & 2 & 2401 & 704 & 67488 & 320512 \\
 		\bottomrule

@@ -10,11 +10,6 @@
 % functional dependence on configurable parameters, e.g., security strength,
 % number of parties and the thresholds.
 
-\subsection{Round complexity}
-
-The round complexity of FROST is straightforward: FROST requires two rounds to
-execute a signing session.
-
 In the following sections we will refer to three rounds:
 \begin{itemize}
 	\item "Round 0" denotes any state that entities need to maintain between signing
@@ -28,6 +23,13 @@ We will use the following notation:
 	\item $N$: maximum number of participants.
 	\item $P$: actual number of participants.
 \end{itemize}
+
+\subsection{Round complexity}
+
+FROST requires two rounds to execute a signing session. When using a central
+coordinator, each participant receives $1$ inbound message and sends $1$
+outbound message per round, while the coordinator correspondingly sends $P$
+outbound messages and receives $P$ inbound messages per round.
 
 \subsection{Communication complexity}
 
@@ -44,6 +46,12 @@ participants: the coordinator downloads $2P$ encoded group elements at the end
 of round 1, broadcasts $2P^2$ encoded group elements and $P^2$ encoded scalars
 at the beginning of round 2, and downloads $P$ encoded scalars at the end of
 round 2.
+
+Note that while the coordinator sends $P$ outbound messages in round 1, the only
+information that the protocol requires be conveyed is that a signing round is
+starting (as noted above for participants). Empty messages are suitable for this
+purpose from an analytic complexity perspective; in a real implementation there
+would be some overhead due to message framing.
 
 \begin{table}
 	\centering

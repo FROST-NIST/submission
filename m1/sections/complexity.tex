@@ -135,18 +135,57 @@ In the setup phase (before the start of a signing session), the coordinator and
 participants need to store $N + 1$ group elements in memory, corresponding to
 the group information. Participants additionally need to store 2 scalars: one
 representing their identity within the signing group, and the other being their
-secret share.
+secret share. The coordinator additionally needs to store $P$ scalars for the
+identities of the signing group participants.
+
+All of the setup data must be stored throughout the signing session, alongside
+round-specific data. In the remainder of this section, as well as the tables
+below, we track the "high water" mark: the maximum amount of data that the
+coordinator or a participant needs to store during the round.
 
 In round 1, the coordinator additionally stores the $2P$ encoded group elements
 at the end of round 1; there is no need for these to be decoded (for validity
 checking) before broadcasting them in round 2. Participants store an additional
-2 group elements and scalars each, along with (TODO explain bytes).
+2 group elements (along with their encodings as part of the message to the
+coordinator), and 2 scalars that need to be held through the end of round 2.
 
-In round 2, the coordinator stores a maximum of $2P + N + 1$ group elements and
-$P$ scalars in memory, while participants store a maximum of $2P + N + 3$ group
-elements and $P + 4$ scalars. (TODO explain bytes)
+In round 2, the "high water" mark for both the participants (during signing) and
+the coordinator (during aggregation) is computation of the binding factors:
 
-TODO: Explain that the tables show the "high water" mark.
+\begin{itemize}
+	\item The hash calculation
+	$\mathsf{encoded\_commitment\_hash} = \mathsf{H5}(\mathsf{encoded\_group\_commitment})$
+	requires $2P$ encoded group elements and $P$ encoded scalars.
+	\item The commitment list also needs to be parsed in memory for subsequent
+	use, costing $2P$ group elements and $P$ scalars.
+	\item The $\mathsf{H5}$ hasher stores state of at least its block size and
+	output size simultaneously at some point during the calculation.
+	\item The preparation of $\mathsf{rho\_input\_prefix}$ just afterwards needs
+	one encoded group element and one hash output, which in the protocol
+	specification are computed prior to $\mathsf{encoded\_commitment\_hash}$.
+\end{itemize}
+
+Therefore, for the protocol as specified:
+
+\begin{itemize}
+	\item The coordinator stores a maximum of $2P + N + 1$ group elements, $2P$
+	scalars, $2P + 1$ encoded group elements, $P$ encoded scalars, 1 hash block,
+	and 2 hash outputs in memory.
+	\item Participants store a maximum of $2P + N + 3$ group elements, $P + 4$
+	scalars, $2P + 1$ encoded group elements, $P$ encoded scalars, 1 hash block,
+	and 2 hash outputs in memory.
+\end{itemize}
+
+An optimised implementation could reduce this maximum memory usage in several
+ways:
+
+\begin{itemize}
+	\item Incrementally compute $\mathsf{encoded\_commitment\_hash}$ by updating
+	the $\mathsf{H5}$ hasher with $\mathsf{encoded\_group\_commitment}$
+	incrementally instead of encoding it in full.
+	\item Compute the other inputs to $\mathsf{rho\_input\_prefix}$ after
+	$\mathsf{encoded\_commitment\_hash}$ instead of beforehand.
+\end{itemize}
 
 \begin{table}
 	\centering

@@ -29,20 +29,24 @@ def print_complexity_tables(coordinator, participant):
         ))
     print()
     used_multiexp = coordinator.cpu.use_multi_exponentiation or participant.cpu.use_multi_exponentiation
-    print('  Computation | Round | A * A | A^k  | B^k  | k + k | k * k | k^n | H blocks |{}'.format(
+    print('  Computation | Round | R(A) | W(A) | A * A | A^k  | B^k  | R(k) | W(k) | k + k | k * k | k^n | H blocks |{}'.format(
         ' Multiexp lengths' if used_multiexp else '',
     ))
-    print('--------------|-------|-------|------|------|-------|-------|-----|----------|{}'.format(
+    print('--------------|-------|------|------|-------|------|------|------|------|-------|-------|-----|----------|{}'.format(
         '-----------------' if used_multiexp else '',
     ))
     for round in [0, 1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+        print('  {} |   {}   | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
             'Coordinator' if round == 0 else '           ',
             round,
+            round_ops.element_reads,
+            round_ops.element_writes,
             round_ops.element_muls,
             round_ops.element_exps,
             round_ops.element_base_exps,
+            round_ops.scalar_reads,
+            round_ops.scalar_writes,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
             round_ops.scalar_exps,
@@ -50,27 +54,35 @@ def print_complexity_tables(coordinator, participant):
             ' {}'.format(round_ops.element_multi_exps) if coordinator.cpu.use_multi_exponentiation else '',
         ))
     coord_total_ops = sum(coordinator.cpu.ops.values(), start=Ops())
-    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+    print('              | Total | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+        coord_total_ops.element_reads,
+        coord_total_ops.element_writes,
         coord_total_ops.element_muls,
         coord_total_ops.element_exps,
         coord_total_ops.element_base_exps,
+        coord_total_ops.scalar_reads,
+        coord_total_ops.scalar_writes,
         coord_total_ops.scalar_adds,
         coord_total_ops.scalar_muls,
         coord_total_ops.scalar_exps,
         coord_total_ops.hash_blocks,
         ' {}'.format(coord_total_ops.element_multi_exps) if coordinator.cpu.use_multi_exponentiation else '',
     ))
-    print('--------------|-------|-------|------|------|-------|-------|-----|----------|{}'.format(
+    print('--------------|-------|------|------|-------|------|------|------|------|-------|-------|-----|----------|{}'.format(
         '-----------------' if used_multiexp else '',
     ))
     for round in [0, 1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
-        print('  {} |   {}   | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+        print('  {} |   {}   | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
             'Participant' if round == 0 else '           ',
             round,
+            round_ops.element_reads,
+            round_ops.element_writes,
             round_ops.element_muls,
             round_ops.element_exps,
             round_ops.element_base_exps,
+            round_ops.scalar_reads,
+            round_ops.scalar_writes,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
             round_ops.scalar_exps,
@@ -78,10 +90,14 @@ def print_complexity_tables(coordinator, participant):
             ' {}'.format(round_ops.element_multi_exps) if participant.cpu.use_multi_exponentiation else '',
         ))
     participant_total_ops = sum(participant.cpu.ops.values(), start=Ops())
-    print('              | Total | {:4}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+    print('              | Total | {:3}  | {:3}  | {:4}  | {:3}  | {:3}  | {:3}  | {:3}  |  {:3}  | {:4}  |  {}  |   {:4}   |{}'.format(
+        participant_total_ops.element_reads,
+        participant_total_ops.element_writes,
         participant_total_ops.element_muls,
         participant_total_ops.element_exps,
         participant_total_ops.element_base_exps,
+        participant_total_ops.scalar_reads,
+        participant_total_ops.scalar_writes,
         participant_total_ops.scalar_adds,
         participant_total_ops.scalar_muls,
         participant_total_ops.scalar_exps,
@@ -148,29 +164,37 @@ def latex_memory_complexity_table(coordinator, participant):
     return s + '		\\bottomrule\n	\\end{tabular}\n'
 
 def latex_computational_complexity_table(coordinator, participant):
-    s = '''	\\begin{tabular}{c c c c c c c c c}
+    s = '''	\\begin{tabular}{c c c c c c c c c c c c c}
 		\\toprule
-		Computation & Round & $A \\times A$ & $A^k$  & $B^k$  & $k + k$ & $k \\times k$ & $k^n$ & H blocks \\\\ \\midrule
+		Computation & Round & $\\mathsf{Read}_A$ & $\\mathsf{Write}_A$ & $A \\times A$ & $A^k$  & $B^k$  & $\\mathsf{Read}_k$ & $\\mathsf{Write}_k$ & $k + k$ & $k \\times k$ & $k^n$ & H blocks \\\\ \\midrule
 '''
     # There is no computation in "round 0".
     for round in [1, 2]:
         round_ops = coordinator.cpu.ops.get(round, Ops())
-        s += '		{} & {} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
+        s += '		{} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
             'Coordinator' if round == 1 else '           ',
             round,
+            round_ops.element_reads,
+            round_ops.element_writes,
             round_ops.element_muls,
             round_ops.element_exps,
             round_ops.element_base_exps,
+            round_ops.scalar_reads,
+            round_ops.scalar_writes,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
             round_ops.scalar_exps,
             round_ops.hash_blocks,
         )
     coord_total_ops = sum(coordinator.cpu.ops.values(), start=Ops())
-    s += '		            & Total & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
+    s += '		            & Total & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
+        coord_total_ops.element_reads,
+        coord_total_ops.element_writes,
         coord_total_ops.element_muls,
         coord_total_ops.element_exps,
         coord_total_ops.element_base_exps,
+        coord_total_ops.scalar_reads,
+        coord_total_ops.scalar_writes,
         coord_total_ops.scalar_adds,
         coord_total_ops.scalar_muls,
         coord_total_ops.scalar_exps,
@@ -179,22 +203,30 @@ def latex_computational_complexity_table(coordinator, participant):
     s += '		\\midrule\n'
     for round in [1, 2]:
         round_ops = participant.cpu.ops.get(round, Ops())
-        s += '		{} & {} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
+        s += '		{} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
             'Participant' if round == 1 else '           ',
             round,
+            round_ops.element_reads,
+            round_ops.element_writes,
             round_ops.element_muls,
             round_ops.element_exps,
             round_ops.element_base_exps,
+            round_ops.scalar_reads,
+            round_ops.scalar_writes,
             round_ops.scalar_adds,
             round_ops.scalar_muls,
             round_ops.scalar_exps,
             round_ops.hash_blocks,
         )
     participant_total_ops = sum(participant.cpu.ops.values(), start=Ops())
-    s += '		            & Total & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
+    s += '		            & Total & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
+        participant_total_ops.element_reads,
+        participant_total_ops.element_writes,
         participant_total_ops.element_muls,
         participant_total_ops.element_exps,
         participant_total_ops.element_base_exps,
+        participant_total_ops.scalar_reads,
+        participant_total_ops.scalar_writes,
         participant_total_ops.scalar_adds,
         participant_total_ops.scalar_muls,
         participant_total_ops.scalar_exps,

@@ -1,24 +1,32 @@
-from .group import Element, Scalar
+from .group import Element, Encoding, G, Scalar
 from .hash import Digest, H
 
 class Ops:
     def __init__(self):
+        self.element_reads = 0
+        self.element_writes = 0
         self.element_muls = 0
         self.element_exps = 0
         self.element_base_exps = 0
         self.element_multi_exps = []
+        self.scalar_reads = 0
+        self.scalar_writes = 0
         self.scalar_adds = 0
         self.scalar_muls = 0
         self.scalar_exps = 0
         self.hash_blocks = 0
 
     def __repr__(self):
-        return '{} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} variable-base multi-exponentiations with at most {} terms, {} scalar adds, {} scalar muls, {} scalar exponentiations, {} hash blocks'.format(
+        return '{} element reads, {} element writes, {} element muls, {} variable-base exponentiations, {} fixed-base exponentiations, {} variable-base multi-exponentiations with at most {} terms, {} scalar reads, {} scalar writes, {} scalar adds, {} scalar muls, {} scalar exponentiations, {} hash blocks'.format(
+            self.element_reads,
+            self.element_writes,
             self.element_muls,
             self.element_exps,
             self.element_base_exps,
             len(self.element_multi_exps),
             max(self.element_multi_exps),
+            self.scalar_reads,
+            self.scalar_writes,
             self.scalar_adds,
             self.scalar_muls,
             self.scalar_exps,
@@ -27,15 +35,25 @@ class Ops:
 
     def __add__(self, other):
         ret = Ops()
+        ret.element_reads = self.element_reads + other.element_reads
+        ret.element_writes = self.element_writes + other.element_writes
         ret.element_muls = self.element_muls + other.element_muls
         ret.element_exps = self.element_exps + other.element_exps
         ret.element_base_exps = self.element_base_exps + other.element_base_exps
         ret.element_multi_exps = self.element_multi_exps + other.element_multi_exps
+        ret.scalar_reads = self.scalar_reads + other.scalar_reads
+        ret.scalar_writes = self.scalar_writes + other.scalar_writes
         ret.scalar_adds = self.scalar_adds + other.scalar_adds
         ret.scalar_muls = self.scalar_muls + other.scalar_muls
         ret.scalar_exps = self.scalar_exps + other.scalar_exps
         ret.hash_blocks = self.hash_blocks + other.hash_blocks
         return ret
+
+    def element_read(self):
+        self.element_reads += 1
+
+    def element_write(self):
+        self.element_writes += 1
 
     def element_mul(self):
         self.element_muls += 1
@@ -48,6 +66,12 @@ class Ops:
 
     def element_multi_exp(self, num_terms):
         self.element_multi_exps += [num_terms]
+
+    def scalar_read(self):
+        self.scalar_reads += 1
+
+    def scalar_write(self):
+        self.scalar_writes += 1
 
     def scalar_add(self):
         self.scalar_adds += 1
@@ -90,6 +114,25 @@ class Processor:
     def random_bytes(self, n):
         return RandomBytes(self.mem, n)
 
+    def element_read(self, buf):
+        name = buf.name()
+        if name.startswith('Serialized('):
+            name = name.removeprefix('Serialized(').removesuffix(')')
+        else:
+            name = 'Deserialized({})'.format(name)
+        self.round_ops().element_read()
+        return Element(self.mem, name)
+
+    def element_write(self, A):
+        assert self.mem is A.mem, 'element on wrong machine'
+        name = A.name()
+        if name.startswith('Deserialized('):
+            name = name.removeprefix('Deserialized(').removesuffix(')')
+        else:
+            name = 'Serialized({})'.format(name)
+        self.round_ops().element_write()
+        return Encoding(self.mem, name, G.Ne)
+
     def element_mul(self, P, Q):
         assert self.mem is P.mem, 'element on wrong machine'
         assert self.mem is Q.mem, 'element on wrong machine'
@@ -123,6 +166,25 @@ class Processor:
             self.mem,
             ' * '.join(['({}^{})'.format(A.name(), k.name()) for (A, k) in terms]),
         )
+
+    def scalar_read(self, buf):
+        name = buf.name()
+        if name.startswith('Serialized('):
+            name = name.removeprefix('Serialized(').removesuffix(')')
+        else:
+            name = 'Deserialized({})'.format(name)
+        self.round_ops().scalar_read()
+        return Scalar(self.mem, name, buf.value())
+
+    def scalar_write(self, s):
+        assert self.mem is s.mem, 'scalar on wrong machine'
+        name = s.name()
+        if name.startswith('Deserialized('):
+            name = name.removeprefix('Deserialized(').removesuffix(')')
+        else:
+            name = 'Serialized({})'.format(name)
+        self.round_ops().scalar_write()
+        return Encoding(self.mem, name, G.Ns, s.value())
 
     def scalar_add(self, j, k):
         assert self.mem is j.mem, 'scalar on wrong machine'

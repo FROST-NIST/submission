@@ -49,20 +49,34 @@ class Participant:
         self.comms = comms
 
         # [T]he public output `comm` is sent to the Coordinator.
-        return (G.SerializeElement(self.mem, self.comms[0]), G.SerializeElement(self.mem, self.comms[1]))
+        return (G.SerializeElement(self.cpu, self.comms[0]), G.SerializeElement(self.cpu, self.comms[1]))
 
     def round_2(self, msg, commitment_list_enc):
-        # TODO: Computational complexity of input validation.
+        # Each participant MUST validate the inputs before processing the Coordinator's
+        # request. In particular, the signer MUST validate commitment_list, deserializing
+        # each group Element in the list using DeserializeElement.
         commitment_list = []
         for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc:
             commitment_list.append((
-                G.DeserializeScalar(self.mem, i),
-                G.DeserializeElement(self.mem, hiding_nonce_commitment_i),
-                G.DeserializeElement(self.mem, binding_nonce_commitment_i),
+                G.DeserializeScalar(self.cpu, i),
+                G.DeserializeElement(self.cpu, hiding_nonce_commitment_i),
+                G.DeserializeElement(self.cpu, binding_nonce_commitment_i),
             ))
             i.free()
             hiding_nonce_commitment_i.free()
             binding_nonce_commitment_i.free()
+
+        # Moreover, each participant MUST ensure that its identifier and commitments (from
+        # the first round) appear in commitment_list.
+        (hiding_nonce_commitment, binding_nonce_commitment) = self.comms
+        assert (self.i, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list
+        hiding_nonce_commitment.free()
+        binding_nonce_commitment.free()
+        self.comms = None
+
+        # Applications that restrict participants from processing arbitrary input messages
+        # are also required to perform relevant application-layer input validation checks.
+        # We do not model these here.
 
         # Upon receipt and successful input validation, each Signer then runs the
         # following procedure to produce its own signature share.
@@ -81,7 +95,7 @@ class Participant:
             binding_nonce_commitment_i.free()
 
         # Each participant then sends these shares back to the Coordinator.
-        sig_share_enc = G.SerializeScalar(self.mem, sig_share)
+        sig_share_enc = G.SerializeScalar(self.cpu, sig_share)
         sig_share.free()
 
         # Each participant MUST delete the nonce and corresponding commitment after
@@ -90,10 +104,7 @@ class Participant:
         hiding_nonce.free()
         binding_nonce.free()
         self.nonces = None
-        (hiding_nonce_commitment, binding_nonce_commitment) = self.comms
-        hiding_nonce_commitment.free()
-        binding_nonce_commitment.free()
-        self.comms = None
+        # We deleted the commitment after confirming it appeared in commitment_list.
 
         return sig_share_enc
 
@@ -124,7 +135,6 @@ class Coordinator:
 
         print('Creating', max_participants, 'key holders')
         for i in progressbar.progressbar(range(1, max_participants + 1)):
-            # TODO: Does coordinator need to store `i` in memory as a `Scalar`?
             self.key_holders.append(Participant(
                 i,
                 group_info,
@@ -133,7 +143,20 @@ class Coordinator:
             ))
 
         print('Selecting', num_participants, 'participants')
+        # These are Python references to the individual participants for the simulator to
+        # use, not anything stored in the Coordinator's memory.
         self.participants = self.key_holders[:num_participants]
+        # These are what the Coordinator actually stores when managing the protocol.
+        # - We store participant indices as in-memory scalars to match what is implied by
+        #   the protocol description in RFC 9591, despite it being possible to store
+        #   `G.SerializeScalar(i)` instead (as the scalar is never used for arithmetic by
+        #   the Coordinator). The difference is negligible for cost models where scalars
+        #   are stored as packed limbs in memory, but could be meaningful in other cost
+        #   models.
+        self.participant_indices = {
+            p: Scalar(self.mem, 'i', p.i.value())
+            for p in self.participants
+        }
 
     def set_round(self, round):
         self.mem.set_round(round)
@@ -160,8 +183,8 @@ class Coordinator:
         for p in progressbar.progressbar(self.participants):
             (hiding_nonce_commitment_i, binding_nonce_commitment_i) = p.round_1()
             commitment_list_enc.append((
-                # TODO: Decide how to model the Coordinator's handling of identifiers.
-                p.i,
+                # `i` is a reference here, don't allocate it.
+                self.participant_indices[p],
                 self.receive_encoding(p, hiding_nonce_commitment_i),
                 self.receive_encoding(p, binding_nonce_commitment_i),
             ))
@@ -172,14 +195,14 @@ class Coordinator:
         sig_shares = []
         for p in progressbar.progressbar(self.participants):
             commitment_list_i = [(
-                self.send_encoding(p, G.SerializeScalar(self.mem, i), True),
+                self.send_encoding(p, G.SerializeScalar(self.cpu, i), True),
                 self.send_encoding(p, hiding_nonce_commitment_i),
                 self.send_encoding(p, binding_nonce_commitment_i),
             ) for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc]
             sig_share_i = self.receive_encoding(p, p.round_2(msg, commitment_list_i))
             # Before aggregating, the Coordinator MUST validate each signature share using
             # `DeserializeScalar`.
-            sig_shares.append(G.DeserializeScalar(self.mem, sig_share_i))
+            sig_shares.append(G.DeserializeScalar(self.cpu, sig_share_i))
             sig_share_i.free()
 
         print('Aggregating signature')
@@ -190,8 +213,8 @@ class Coordinator:
         for (i, hiding_nonce_commitment_i, binding_nonce_commitment_i) in commitment_list_enc:
             commitment_list.append((
                 i,
-                G.DeserializeElement(self.mem, hiding_nonce_commitment_i),
-                G.DeserializeElement(self.mem, binding_nonce_commitment_i),
+                G.DeserializeElement(self.cpu, hiding_nonce_commitment_i),
+                G.DeserializeElement(self.cpu, binding_nonce_commitment_i),
             ))
             # `i` is a reference here, don't free it.
             hiding_nonce_commitment_i.free()
@@ -214,6 +237,8 @@ class Coordinator:
         # Finished protocol run; free the signature, participants, and group info.
         sig[0].free()
         sig[1].free()
+        for i in self.participant_indices.values():
+            i.free()
         for p in self.key_holders:
             p.free()
         self.group_info.free()
@@ -231,7 +256,9 @@ def main():
 
     # Current assumptions:
     # - Elements are curve points stored in projective (X, Y, T) coordinates.
-    # - Scalars are stored as packed limbs in memory.
+    # - Scalars are stored as packed limbs in memory; any unpacking or repacking cost is
+    #   bundled into the cost of scalar operations (as opposed to e.g. storing scalars in
+    #   Montgomery form which would instead incur a cost during (de)serialization).
     if args.security_strength == 128:
         # FROST(Ed25519, SHA-512)
         G.Ne = 32

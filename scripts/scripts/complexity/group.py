@@ -22,40 +22,20 @@ class G:
         return cpu.element_multi_exp(terms)
 
     @classmethod
-    def SerializeElement(cls, mem, A):
-        name = A.name()
-        if name.startswith('Deserialized('):
-            name = name.removeprefix('Deserialized(').removesuffix(')')
-        else:
-            name = 'Serialized({})'.format(name)
-        return Encoding(mem, name, cls.Ne)
+    def SerializeElement(cls, cpu, A):
+        return cpu.element_write(A)
 
     @classmethod
-    def DeserializeElement(cls, mem, buf):
-        name = buf.name()
-        if name.startswith('Serialized('):
-            name = name.removeprefix('Serialized(').removesuffix(')')
-        else:
-            name = 'Deserialized({})'.format(name)
-        return Element(mem, name)
+    def DeserializeElement(cls, cpu, buf):
+        return cpu.element_read(buf)
 
     @classmethod
-    def SerializeScalar(cls, mem, s):
-        name = s.name()
-        if name.startswith('Deserialized('):
-            name = name.removeprefix('Deserialized(').removesuffix(')')
-        else:
-            name = 'Serialized({})'.format(name)
-        return Encoding(mem, name, cls.Ns, s.value())
+    def SerializeScalar(cls, cpu, s):
+        return cpu.scalar_write(s)
 
     @classmethod
-    def DeserializeScalar(cls, mem, buf):
-        name = buf.name()
-        if name.startswith('Serialized('):
-            name = name.removeprefix('Serialized(').removesuffix(')')
-        else:
-            name = 'Deserialized({})'.format(name)
-        return Scalar(mem, name, buf.value())
+    def DeserializeScalar(cls, cpu, buf):
+        return cpu.scalar_read(buf)
 
 # An element of a prime-order group `G`.
 class Element:
@@ -71,6 +51,14 @@ class Element:
 
     def free(self):
         self.allocation.free()
+
+    def __repr__(self):
+        return 'Element({})'.format(self.name())
+
+    def __eq__(self, other):
+        # Define equality by name, which is sufficient for our purpose (checking for
+        # commitment equality in a tuple that also contains a Scalar identifier).
+        return self.name() == other.name()
 
 # An integer modulo the prime order `p` of group `G`.
 class Scalar:

@@ -223,27 +223,65 @@ The coordinator may be one of the parties $P_i$ or an external party.
 All parties can be modeled as probabilistic, polynomial-time Turing machines.
 We assume there is prior agreement on the value of $n$ and the threshold $t$ as well as the $n$ participant identifiers (i.e., all parties ``know who" the $n$ parties are).
 In implementations with authenticated channels, participant identifiers may be associated to public keys, which need to be verified, for example, by zero-knowledge proofs during key generation.
+\ian{Below, we say there's no need for authenticated channels at all.
+Do we need to talk about verifying keys in that case?  Later, we say
+authenticated channels allow for identifiable abort, but as I note
+below, that's only true sometimes.}
 
-Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by having parties broadcast their protocol messages instead.  However, this would result in increased communication complexity of $\BigO(\kappa n^2)$, where $\kappa$ is the security parameter.
+Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by having parties broadcast
+\ian{Not broadcast, but rather just send their messages to each other
+party.  The parties do \emph{not} need to be assured that they all
+received the same messages, which is what ``broadcast'' implies, as
+notes below.}
+their protocol messages instead.  However, this would result in increased communication complexity of $\BigO(\kappa n^2)$, where $\kappa$ is the security parameter.
+\ian{FROST already has this complexity even in the coordinator setting,
+no?  The $B$ vector of $(i,D_i,E_i)$ tuples is of length $\BigO(\kappa
+n)$, and it needs to be sent to each of $n$ parties. I can believe the
+\emph{message} complexity is higher in the non-coordinator setting, though.}
 
 \subsection{Distributed Systems and Communication}
+
 
 \begin{description}
 
 \item[Synchrony.] FROST is unforgeable even in an asynchronous network. An adversary may be \emph{rushing}; that is, it may wait until all honest protocol messages have been sent before determining its own messages.
 
 \item[Reliability.] FROST relies on a reliable network channel, meaning that all protocol messages are delivered correctly, exactly once, and in the intended order.  \liz{The NIST document says we should discuss the pitfalls of deployment in environments with weaker guarantees (e.g., with asynchronous and unreliable channels), and possible mitigations.  What are some possible mitigations against forging if the network is unreliable?}
+\ian{I'm thinking that a table might be useful, showing that if you do
+or don't have synchronous / reliable / confidential / authenticated /
+broadcast channels, then what guarantees (correctness, robustness,
+security/unforgeability, etc.) do and don't hold in each of the key generation
+and signing phases?}
 
-\item[Broadcast.] FROST does not rely on a broadcast channel; an adversary may send inconsistent protocol messages to honest parties, even within the same signing session.  Furthermore, authenticated channels are not assumed either, so an adversary can decide which protocol messages to send to an honest party on behalf of another honest party.
+\item[Broadcast.] FROST does not rely on a broadcast channel; an adversary may send inconsistent protocol messages to honest parties, even within the same signing session.  Furthermore,
+\ian{Shouldn't the authenticated channels discussion be its own
+description point?  Authenticated channels are not a kind of broadcast
+channel.}
+authenticated channels are not assumed either, so an adversary can decide which protocol messages to send to an honest party on behalf of another honest party.
 \liz{What about authenticated channels between the coordinator and signers?}
+\ian{Not needed during signing for unforgeability, but needed during key generation
+(recipient-authenticated and confidential for the trusted-dealer style
+of key generation, for example).}
 
 \end{description}
 
 \noindent \textbf{Robustness.} FROST is not robust, meaning that there is no guarantee that a signing session will terminate.
+\ian{In the presence of an adversary, at least?}
 However, in a slightly stronger network model, FROST does achieve identifiable aborts.
 Indeed, if authenticated channels are assumed, participant identifiers may be associated to public keys via a public key infrastructure (PKI).
 Then, if a signer produces a malformed protocol message, they may be identified and removed from the signing session, and a new FROST session may be initiated without them.
+\ian{This doesn't look sufficient to me to yield identifiable abort?
+What if the coordinator equivocates (sends different messages to
+different parties), for example?  You'd need some broadcast-esque
+subprotocol for honest signers to identify an equivocating coordinator.}
 While this yields a robust protocol overall, these sequential iterations of FROST additionally require the network to be synchronous.
+\ian{And for the coordinator to be honest, in order to properly exclude
+the misbehaving players and re-execute the protocol.  But is synchrony
+actually needed here?  Won't the messages of the subsequent rounds of
+the protocol just get there when they get there?  As long as the network
+is authenticated and \emph{reliable} (and the coordinator and enough
+signers are honest), this should yield robustness and unforgeability,
+right?}
 
 \subsection{Adversary}
 
@@ -258,8 +296,13 @@ Upon corruption, the adversary learns the secret key and private state for the c
 Currently, there is no known proof of adaptive security for FROST.
 
 \item[Mobile.] A mobile adversary ``persistently continues (attempting to) corrupt parties across multiple executions of the main protocol, possibly corrupting parties after they have been recovered from a previous corruption."
+\ian{Cite that this quote is from the call.}
 Currently, there is no known security proof for FROST capturing a mobile adversary.
 \liz{Dynamic-FROST (https://eprint.iacr.org/2024/896) possibly achieves this.}
+\ian{But not for FROST as specified in our submission, right?  It needs
+to add CHURP in order to achieve security against a mobile adversary?
+(\emph{Some} kind of proactivity is pretty much unavoidable if you want
+to defend against a mobile adversary.)}
 
 \end{description}
 

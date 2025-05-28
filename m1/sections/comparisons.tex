@@ -228,11 +228,11 @@ Do we need to talk about verifying keys in that case?  Later, we say
 authenticated channels allow for identifiable abort, but as I note
 below, that's only true sometimes.}
 
-Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by having parties broadcast
+Note that FROST can be instantiated without the coordinator $\mathcal{C}$ by having parties multicast
 \ian{Not broadcast, but rather just send their messages to each other
 party.  The parties do \emph{not} need to be assured that they all
 received the same messages, which is what ``broadcast'' implies, as
-notes below.}
+notes below.} \liz{Changed to multicast.}
 their protocol messages instead.  However, this would result in increased communication complexity of $\BigO(\kappa n^2)$, where $\kappa$ is the security parameter.
 \ian{FROST already has this complexity even in the coordinator setting,
 no?  The $B$ vector of $(i,D_i,E_i)$ tuples is of length $\BigO(\kappa
@@ -252,21 +252,15 @@ or don't have synchronous / reliable / confidential / authenticated /
 broadcast channels, then what guarantees (correctness, robustness,
 security/unforgeability, etc.) do and don't hold in each of the key generation
 and signing phases?}
+\liz{For table, Ian: Not needed during signing for unforgeability, but needed during key generation (recipient-authenticated and confidential for the trusted-dealer style of key generation, for example).}
 
-\item[Broadcast.] FROST does not rely on a broadcast channel; an adversary may send inconsistent protocol messages to honest parties, even within the same signing session.  Furthermore,
-\ian{Shouldn't the authenticated channels discussion be its own
-description point?  Authenticated channels are not a kind of broadcast
-channel.}
-authenticated channels are not assumed either, so an adversary can decide which protocol messages to send to an honest party on behalf of another honest party.
-\liz{What about authenticated channels between the coordinator and signers?}
-\ian{Not needed during signing for unforgeability, but needed during key generation
-(recipient-authenticated and confidential for the trusted-dealer style
-of key generation, for example).}
+\item[Broadcast Channels.] FROST does not rely on a broadcast channel; an adversary may send inconsistent protocol messages to honest parties, even within the same signing session.  
+
+\item[Authenticated Channels.] Authenticated channels are not assumed either, so an adversary can decide which protocol messages to send to an honest party on behalf of another honest party.
 
 \end{description}
 
-\noindent \textbf{Robustness.} FROST is not robust, meaning that there is no guarantee that a signing session will terminate.
-\ian{In the presence of an adversary, at least?}
+\noindent \textbf{Robustness.} FROST is not robust, meaning that there is no guarantee that a signing session will terminate in the presence of an adversary.
 However, in a slightly stronger network model, FROST does achieve identifiable aborts.
 Indeed, if authenticated channels are assumed, participant identifiers may be associated to public keys via a public key infrastructure (PKI).
 Then, if a signer produces a malformed protocol message, they may be identified and removed from the signing session, and a new FROST session may be initiated without them.
@@ -274,7 +268,13 @@ Then, if a signer produces a malformed protocol message, they may be identified 
 What if the coordinator equivocates (sends different messages to
 different parties), for example?  You'd need some broadcast-esque
 subprotocol for honest signers to identify an equivocating coordinator.}
-While this yields a robust protocol overall, these sequential iterations of FROST additionally require the network to be synchronous.
+\liz{I wrote Tim that that identifiable abort technically requires broadcast, and his response was, ``It achieves IA precisely in the sense of our Def. 2.2. If you're saying that IA without broadcast is impossible because honest parties can't agree on the bad party, then the coordinator acts as a broadcast channel and takes care of this."  Another paper, Glacius, gives a game-based definition of IA (pg. 9 of https://eprint.iacr.org/2024/1628.pdf), and says, ``We note that our IA property differs from the IA property in the secure multiparty computation (MPC) literature. In the MPC literature, the IA property must also detect parties who fail to send
+required protocol messages. In contrast, our IA property focuses solely on detecting explicit misbehavior,
+not crash failures. The IA in MPC literature is stronger, but achieving this property requires broadcast
+channels and, consequently, imposes constraints on failure bounds and network conditions. Contrary to this,
+our IA definition is agnostic to network conditions and fault-tolerance levels."}
+This trivially results in a robust scheme; however, as noted in \cite{RuffingRJSS22}, if there are $f$ malicious
+signers, then $f+1$ sequential runs of the underlying protocol are required, which are necessarily synchronous.
 \ian{And for the coordinator to be honest, in order to properly exclude
 the misbehaving players and re-execute the protocol.  But is synchrony
 actually needed here?  Won't the messages of the subsequent rounds of
@@ -282,6 +282,7 @@ the protocol just get there when they get there?  As long as the network
 is authenticated and \emph{reliable} (and the coordinator and enough
 signers are honest), this should yield robustness and unforgeability,
 right?}
+\liz{ROAST specifically requires a scheme with identifiable aborts.  The application of ROAST (a wrapper) to such a protocol yields a robust scheme that maintains asynchrony.  I am not sure why the trivially robust scheme is cited as requiring synchrony.  I will write Tim about this.}
 
 \subsection{Adversary}
 
@@ -297,6 +298,18 @@ Currently, there is no known proof of adaptive security for FROST.
 
 \item[Mobile.] A mobile adversary ``persistently continues (attempting to) corrupt parties across multiple executions of the main protocol, possibly corrupting parties after they have been recovered from a previous corruption."
 \ian{Cite that this quote is from the call.}
+\liz{This quote has been removed, and the discussion of mobile adversaries has changed. ``The suggestion to consider a mobile adversary is intended to
+induce the characterization of various levels of insecurity (e.g., which properties break)
+when acceptable thresholds are surpassed. In practice, the adversary’s capabilities may be
+modeled as part of the security idealization (see Appendix C.2.3)." Then: ``Compatibility with recovery mechanisms (against mobile attacks). A submit-1142
+ted threshold scheme is not required to include recovery mechanisms that attempt1143
+to identify, remove or replace (recover) corrupted parties. However, the submission1144
+should discuss how it envisions possible augmentations to integrate mechanisms1145
+for proactive or reactive recovery, which are important for handling a persistent1146
+mobile adversary that continuously attempts to corrupt more parties. For example,1147
+with respect to refreshing secret shares, a solution can be based on a modularized1148
+phase of secret-resharing (see S7), while also specifying the needed conditions (e.g.,1149
+requirement of some initial/final agreement by a qualified quorum) for its integration."}
 Currently, there is no known security proof for FROST capturing a mobile adversary.
 \liz{Dynamic-FROST (https://eprint.iacr.org/2024/896) possibly achieves this.}
 \ian{But not for FROST as specified in our submission, right?  It needs

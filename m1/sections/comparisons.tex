@@ -282,7 +282,8 @@ the protocol just get there when they get there?  As long as the network
 is authenticated and \emph{reliable} (and the coordinator and enough
 signers are honest), this should yield robustness and unforgeability,
 right?}
-\liz{ROAST specifically requires a scheme with identifiable aborts.  The application of ROAST (a wrapper) to such a protocol yields a robust scheme that maintains asynchrony.  I am not sure why the trivially robust scheme is cited as requiring synchrony.  I will write Tim about this.}
+\liz{ROAST specifically requires a scheme with identifiable aborts.  The application of ROAST (a wrapper) to such a protocol yields a robust scheme that maintains asynchrony.}
+\liz{On synchrony, Tim says, ``I don't think the online signers can agree on the fact that someone omitted a message without synchrony. Or...it is not only about the agreement but even about the observation that someone omitted. How can you, even as a single signer, conclude that someone else didn't send without some kind of timeout."}
 
 \subsection{Adversary}
 

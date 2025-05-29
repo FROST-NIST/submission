@@ -7,33 +7,33 @@
 In this work,
 we describe FROST,
 a two-round threshold signature scheme that thresholdizes the EdDSA signature scheme.
+\liz{Does it thresholdize the EdDSA standard exactly?}
 In particular,
-we will provide a Cat1 submission for subcategory C1.1 EdDSA signing.
+we will provide a Cat1 submission for subcategory C1.1 EdDSA signing. \liz{This is now called Class-N.}
 
 \subsection{Outline of Approach}
 
-FROST (Flexible Round-Optimized Schnorr Threshold Signatures)~\cite{KomloG20,BellareCKMTZ22} addresses the need for efficient threshold EdDSA signing operations,
+FROST (Flexible Round-Optimized Schnorr Threshold Signatures)~\cite{KomloG20,BellareCKMTZ22} \liz{Maybe put this when FROST is first mentioned above.} addresses the need for efficient threshold EdDSA signing operations,
 while ensuring strong security properties \emph{without} limiting the parallelism of signing operations.
 FROST signing operations can be performed in two network rounds assuming no participant misbehaves.
 However, in the case where a misbehaving participant contributes malformed values during the protocol,
-honest parties can identify and exclude the misbehaving participant, and re-run the protocol.
-%\liz{We should be rigorous somewhere about how identifiable abort is achieved.}
+honest parties can identify and exclude the misbehaving participant, and re-run the protocol. \liz{There is active discussion on this in the other document.}
 
 Here, we describe the two-round version of FROST.
 However, implementations may perform the first round in a batched setting,
-allowing the scheme to be used in a manner where online signing requires only a single round of communication.
+allowing the scheme to be used in a manner where online signing requires only a single round of communication.  \liz{Our proofs are given w.r.t. the pre-processing version.  We should clarify this.}
 
 \subsubsection{System Model.}
 We assume the following when describing FROST:
 
 \begin{itemize}[itemsep=0.5em]
 \item \textbf{Idealized Key Generation via Shamir Secret Sharing.}
-We model key generation as an idealized functionality that outputs Shamir secret shares $\sk_i$ of a private signing key corresponding to a public key $\pk$,
-where $n$ total parties receive a secret signing share,
-and $\thresh$ parties are required to reconstruct.
-We assume that each participant is initialized with their respective secret key share,
+We model key generation as an idealized functionality that outputs Shamir secret shares $\sk_i$ of a private signing key corresponding to a public key $\pk$, \liz{It looks a bit odd to use mathcal for a group element, especially as we don't do the same for other group elements, and the corresponding secret key is mathbf.}
+where $n$ total parties receive a secret signing \liz{key?} share, \liz{This makes it sound like they all receive the same share.}
+and $\thresh$ parties are required to reconstruct. \liz{Reconstruct what?  Also, we should call this the threshold.}
+We assume that each participant is initialized \liz{Specify that there is no initialization before key generation has completed then.} with their respective secret key share,
 the public key shares of all other participants,
-and the joint public key representing the group.
+and the joint public key $\pk$ representing the group.
 \item \textbf{Coordinator Role.} We model message passing between participants
 via a centralized coordinator.
 The coordinator is trusted to not perform denial-of-service attacks by dropping messages,
@@ -45,67 +45,67 @@ but otherwise the coordinator is untrusted.
 FROST signing can be performed either in two online rounds,
 or one online round,
 after performing the first round using matching.
-and a second purely online round.
+and a second purely online round.  \liz{?}
 Then, a final stage to perform aggregation is required,
 at which the joint signature is output.
 The scheme is defined with respect to the domain-separated hash functions $\HashNon$ and $\HashSig$.
 
 Note that while FROST assumes that randomness generated during the first round of signing is used at most once during the second round of signing,
 it does \emph{not} assume that participants maintain consistent session identifiers.
-Each player performs the first round of signing independently,
+Each player \liz{player?} performs the first round of signing independently,
 and the coordinator does not need to pick inputs to the second round of signing,
-assuming some form of consistency of sessions.
+assuming some form of consistency of sessions. \liz{What does this sentence mean?}
 %To reflect this requirement,
 %we introduce the notation of $\eid$, to denote an execution identifier maintained locally by each participant.
 %$\eid$ is \emph{not} consistent among all participants.
 
 \paragraph{Round One.}
 The first signing round of FROST can be performed either at the time of signing,
-or as a batched operation during a pre-processing phase.
+or as a batched operation during a pre-processing phase. \liz{Above, we say ``Here, we described the two-round version of FROST," but then we seem to be including both modes equally.  Our submission implementation(s) is only the fully two-round version, right?}
 %\liz{Again, not sure we should be mixing these since we don't properly define the pre-processing version.}
 % CK- we don't need to define the pre-processing setting;
 % the first round is just done as a batched operation.
 
-Each party with identifier $\partyid \in \{ 1, \ldots, n\} $ where $n \in \Zp$ is the total number of parties
-samples two nonces $(r_{\partyid},  s_{\partyid}) \randpick \Zp$,
+Each party with identifier $\partyid \in \{ 1, \ldots, n\} $ \liz{Can't they have an arbitrary identifier?  We can say we assume integers in our syntax.}, where $n \in \Zp$ is the total number of parties,
+samples two nonces $(r_{\partyid},  s_{\partyid}) \randpick \Zp^2$,
 %\liz{We should define any mathematical notation in a preliminaries section.}
 % CK- this is just an abstract, I think it is ok.
 and then derives the corresponding commitments $R_{\partyid} \gets g^{r_{\partyid}}$, $ S_{\partyid} \gets  g^{s_{\partyid}}$.
 They store $(r_{\partyid}, s_{\partyid})$ in their internal state,
-and output $(R_{\partyid}, S_{\partyid})$.
+and output $(R_{\partyid}, S_{\partyid})$. \liz{In our papers, we sometimes store $(R_k, S_k)$ so it doesn't need to be recomputed - what do we do in the implementation?}
 
 \paragraph{Round Two.}
 All participants in a signing coalition $\coalition \subseteq \set{n}, \lvert \coalition \rvert \geq \thresh$,
-accept as input a message $\msg$ and a combination of commitments $\setCommit := \{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ from parties in the coalition.
+accept as input a message $\msg$ \liz{Maybe say that $m, n, \thresh$ are pre-agreed on?} and a combination \liz{combination?} of commitments $\setCommit := \{ (i, R_{i}, S_{i})\}_{i \in \coalition}$ from parties in the coalition. \liz{$\setCommit$ should be parameterized by $\coalition$ then.}
 
-On input the message $m$ and commitment set $B = \{ (i, R_i, S_i) \}_{i \in \S}$,
+On input the message $m$ and commitment set $B = \{ (i, R_i, S_i) \}_{i \in \S}$, \liz{?}
 each party $\partyid$ retrieves $(r_{\partyid}, s_{\partyid})$ from their internal state such that $(R_\partyid, S_\partyid) = (g^{r_{\partyid}}, g^{s_{\partyid}})$.
-(The party aborts if such $(r_{\partyid}, s_{\partyid})$ does not exist.)
-Then, each party derives binding factors $\bindingfactor_i \gets \HashNon(i, \setCommit)$ for each party $i \in \coalition$, the group commitment $R \gets \prod_{i \in \coalition} R_{i} \cdot  S_{i}^{\bindingfactor_i}$, and the challenge
+(The party aborts if such $(r_{\partyid}, s_{\partyid})$ does not exist.) \liz{Better to say if $(R_\partyid, S_\partyid) \neq (g^{r_{\partyid}}, g^{s_{\partyid}})$ for  $(r_{\partyid}, s_{\partyid})$ pulled from state.}
+Then, each party derives binding factors $\bindingfactor_i \gets \HashNon(i, \setCommit)$ \liz{Why aren't we hashing $\pk, \coalition, m$?} for each party $i \in \coalition$, the group commitment  \liz{Group here is ambiguous - could mean signing group or group element.}  $R \gets \prod_{i \in \coalition} R_{i} \cdot  S_{i}^{\bindingfactor_i}$, and the challenge
 %\liz{This terminology isn't defined.}
 %\chelsea{defined next}
 $c \gets \HashSig(R, \pk, m)$.
 Finally, each party outputs their signature share as
 $z_\partyid \gets r_{\partyid} + s_{\partyid} \cdot \bindingfactor_\partyid + c \cdot \sk_\partyid \cdot \lambda_\partyid$,
-where $\lambda_\partyid$ is the Lagrange coefficient,
+where $\lambda_\partyid$ is the Lagrange coefficient, \liz{W.r.t. the coalition $\coalition$.}
 %\liz{Define.}
 %\chelsea{we can do that in the full version}
-and deletes $(r_{\partyid}, s_{\partyid})$.
+and deletes $(r_{\partyid}, s_{\partyid})$. \liz{Maybe say something about this as best practice, not secure erasure.}
 
 
 \paragraph{Combine.}
-The coordinator derives the response $z = \sum_{i \in \coalition} z_i$.
+The coordinator derives the response $z = \sum_{i \in \coalition} z_i$. \liz{If we're going to use Schnorr identification terminology, like challenge and response, we should define that.}
 The group commitment $R$ is derived as explained above.
 The output signature $\sigma = (R,z)$ is a standard Schnorr signature,
-and verifies under the (single-party) Schnorr verification algorithm.
+and verifies under the (single-party) Schnorr verification algorithm. \liz{May still want to say what this is.  Also, if we're claiming compatibility with EdDSA signing, we should clarify this.}
 
 \subsubsection{Security Properties.}
 Security of any threshold signature scheme is defined by the notion of unforgeability,
-assuming the adversary is able to corrupt fewer than a threshold number of participants.
+assuming the adversary is able to corrupt fewer than a threshold number of participants. \liz{This is not true in the $t/2$ setting, for example.  We are talking about static security here (which is not clear btw), but this section also includes adaptive security.}
 FROST achieves a strong notion of unforgeability in the dishonest majority setting,
-under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM).
-Intuitively, unforgeability in a threshold signature setting guarantees that an adversary which corrupts the coordinator and up to $t-1$ signers cannot generate a valid signature for any message $\msg$ that has not been signed by at least one honest signer.
-As demonstrated by Bellare et al.~\cite{BellareCKMTZ22}, there are different conditions to declare $\msg$ to be authorized (signed),
+    under the algebraic one-more discrete logarithm (AOMDL) assumption in the random oracle model (ROM). \liz{The Bellare et al. results are under OMDL though.  We will need to cite the adaptive FROST paper for TS-UF-0 under AOMDL.}
+Intuitively, unforgeability in a threshold signature setting guarantees that an adversary which corrupts the coordinator \liz{May want to be more clear about what corrupts means, i.e., it is not trusted for unforgeability but still needs to relay messages.  Also, ``corrupts the coordinator and up to $t-1$ signers" sounds adaptive - may want to say ``which controls" or something.} and up to $t-1$ signers cannot generate a valid signature for any message $\msg$ that has not been signed by at least one honest signer. \liz{And indeed, historically this was the definition of unforgeability under which schemes were (and continue to be) proven, corresponding to TS-UF-0.}
+As demonstrated by Bellare et al.~\cite{BellareCKMTZ22}, there are different conditions to declare $\msg$ to be authorized (signed), \liz{Need for the word authorized here?}
 which gives different security levels for partially non-interactive schemes such as FROST.
 %\liz{These are only definitions for partially non-interactive schemes.  Also, we are proposing the fully two-round scheme.}
 %\chelsea{it can be used in the one-round setting too}
@@ -115,29 +115,29 @@ which gives different security levels for partially non-interactive schemes such
 \medskip
 
 \textbf{TS-UF-0.} The weakest condition,
-which gives the weakest unforgeability for a threshold signature scheme,
-is referred to as $\TSUF{0}$, considers that $\msg$ was signed as long as at least one honest party generated a signature share for $\msg$.
-In other words, for a $\TSUF{0}$-secure scheme, the adversary cannot forge a valid signature for $\msg$ if no honest party generated a signature share for $\msg$.
+which gives the weakest unforgeability for a threshold signature scheme \liz{Again, may want to emphasize that most schemes have been proven under this condition, so as not to make it sound super bad.  It's more like the ``standard" notion of unforgeability.}
+and is referred to as $\TSUF{0}$, considers that $\msg$ was signed as long as at least one honest party generated a signature share for $\msg$.
+In other words, for a $\TSUF{0}$-secure scheme, the adversary cannot forge a valid signature for $\msg$ if no honest party generated a signature share for $\msg$. \liz{I find this confusing.  Maybe change to `` if $\msg$ was not a signing query, i.e., no signature share was generated for $\msg$."}
 In the setting of FROST,
 this condition entails that at least one honest signer output a response $z_i$ for a message $m$,
-if the output signature under $\pk$ is valid.
+if the output signature under $\pk$ is valid. \liz{I don't understand what this second part is referring to.}
 $\TSUF{0}$ however does not consider the case when the adversary corrupts \emph{fewer} than $(t-1)$ parties,
-i.e., it assumes that the number of corrupted parties $\numcorrupt = t-1$.
+i.e., it assumes that the number of corrupted parties is $\numcorrupt = t-1$. \liz{Exactly? Why can't it corrupt up to $t-1$?}
 
 \medskip
 
 \textbf{TS-UF-1.} The next level of security, $\TSUF{1}$, strengthens the above condition to requiring that at least  $(t - \numcorrupt)$ honest parties generated signature shares for $\msg$,
-where $\numcorrupt$ denotes the number of corrupted parties,
-such that $\numcorrupt \leq t$.
+where $\numcorrupt$ denotes the number of corrupted parties, \liz{We've already used $\numcorrupt$ and should define it where it first appears.}
+such that $\numcorrupt \leq t$. \liz{Again, there could be further restrictions.  We may want to specify the ``allowable" corruption threshold $< \thresh$.}
 In other words,
 $\TSUF{1}$ considers the generalized setting when the adversary corrupts $\numcorrupt < t-1$;
-i.e., fewer parties than the maximum allowed $t-1$.
+i.e., fewer parties than the maximum allowed $t-1$. \liz{I'm confused.  Prior protocols were proven TS-UF-0 and allowed *up to* $\thresh-1$ corruptions.}
 
-However, $\TSUF{1}$ does not guarantee that when the honest parties generated the signature shares for $\msg$, they all had the same view, i.e., received the same second-round input.
+\liz{Made it to here.} However, $\TSUF{1}$ does not guarantee that when the honest parties generated the signature shares for $\msg$, they all had the same view, i.e., received the same second-round input.
 %igning coalition and the same combinations of commitments.
   %forwarding inconsistent information to different honest parties in the second (online) round.
 %combining signature shares from different signing sessions.
-More precisely, for a $\TSUF{1}$-secure scheme, the corrupted coordinator can send different combinations of commitments to different honest parties for signing $\msg$ in the (online) second round,
+More precisely, for a $\TSUF{1}$-secure scheme, a corrupted coordinator can send different combinations of commitments to different honest parties for signing $\msg$ in the (online) second round,
 and as long as the total number of honest parties responded is at least $(t-\numcorrupt)$, the adversary might be able to compute a valid signature for $\msg$.
 
 %\chelsea{Wouldn't this result in a ROS attack, and thus break unforgeability altogether?}
@@ -167,13 +167,13 @@ $\TSUF{4}$ is a stronger condition because the size of $\coalition$ is at least 
 One means to achieve $\TSUF{4}$ security is by ensuring authenticity of participants' messages,
 to prevent an adversary from performing integrity attacks that may result in a valid output signature but where participants' views are inconsistent during the protocol execution.
 
-Bellare et al.~\cite{BellareCKMTZ22} showed that if we assume authenticated network channels, which guarantee that the corrupted coordinator cannot forward incorrect commitments to honest parties in the online round,
+Bellare et al.~\cite{BellareCKMTZ22} showed that if we assume authenticated network channels, \liz{It shows TS-UF-4 assuming the SUF-CMA unforgeability of an additional signature scheme.  Are these interchangeable?  What if the additional signature is only EUF-CMA?} which guarantee that a corrupt coordinator cannot forward incorrect commitments to honest parties in the online round,
 then FROST achieves $\TSUF{4}$.
 However, because implementations may wish to define authenticated channels in a manner specific to their setup,
 we do not define this authentication layer within this specification.
 As such,
 we allow implementations to choose if they wish to achieve $\TSUF{4}$ security,
-and simply recommend that FROST be performed over an authenticated channel to do so.
+and simply recommend that FROST be performed over authenticated channels to do so.
 
 \medskip
 \textbf{Strong unforgeability.} Moreover, Bellare et al.~\cite{BellareCKMTZ22} showed that FROST is \emph{strongly} unforgeable, referred to as $\TSSUF{3}$ (or $\TSSUF{4}$ assuming authenticated channels), which, analogous to the strong unforgeability of signature schemes, guarantees that an adversary cannot forge a message-signature pair $(\msg,\sigma)$ that is not considered  authorized.

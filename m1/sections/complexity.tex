@@ -1,0 +1,320 @@
+%!TEX root = ../main.tex
+
+\section{Analytic complexity}\label{section:complexity}
+
+% An analytical estimation of the (i) memory complexity, (ii) computational
+% complexity, (iii) communication complexity, and (iv) round complexity of each
+% proposed crypto-system. See Section 7.2 about experimental evaluation. As
+% applicable, the estimates should include: a breakdown across various phases of
+% the protocol; the complexity per party and for the entire system; and the
+% functional dependence on configurable parameters, e.g., security strength,
+% number of parties and the thresholds.
+
+In the following sections we will refer to three phases:
+\begin{itemize}
+	\item "Setup" denotes any state that entities need to maintain between
+	signing sessions. This is only relevant to memory complexity.
+	\item "Round 1" and "round 2" denote the individual signing rounds.
+\end{itemize}
+
+We will use the following notation:
+\begin{itemize}
+	\item $K$: the threshold (minimum number of participants).
+	\item $N$: maximum number of participants.
+	\item $P$: actual number of participants.
+\end{itemize}
+
+We assume a hub-and-spoke model for the coordinator. This has the benefit of
+also reflecting the analytic complexity of a protocol instantiation without a
+coordinator role, in which every participant is connected to and communicating
+with all other participants. In that scenario, each participant's round and
+communication complexity is replaced with the coordinator's, their memory
+complexity is the maximum of either, and their computational complexity is the
+sum of both.
+
+\subsection{Round complexity}
+
+FROST requires two rounds to execute a signing session. Participants can operate
+independently of each other in both rounds, and only need to communicate with
+the coordinator. As such, each participant receives $1$ inbound message and
+sends $1$ outbound message per round, while the coordinator correspondingly
+sends $P$ outbound messages and receives $P$ inbound messages per round.
+
+\subsection{Communication complexity}
+
+In round 1, no information needs to be broadcast from the coordinator to
+participants other than the fact that a signing round is starting. The
+participants do not even learn which other participants are in the signing
+session at this stage. Each participant sends back 2 encoded group elements.
+
+In round 2, each participant receives $2P$ encoded group elements and $P$
+encoded scalars, and sends back a single encoded scalar.
+
+Communication complexity at the coordinator scales quadratically in the number
+of participants: the coordinator downloads $2P$ encoded group elements at
+the end of round 1, broadcasts $2P^2$ encoded group elements and $P^2$ encoded
+scalars at the beginning of round 2, and downloads $P$ encoded scalars at the
+end of round 2.
+
+Note that while the coordinator sends $P$ outbound messages in round 1, the only
+information that the protocol requires be conveyed is that a signing round is
+starting (as noted above for participants). Empty messages are suitable for this
+purpose from an analytic complexity perspective; in a real implementation there
+would be some overhead due to message framing.
+
+The information broadcast by the coordinator at the beginning of round 2 is
+identical for all participants. The communication complexity at the coordinator
+itself can therefore be reduced from quadratic to linear with the aid of an
+authenticated broadcast channel that performs the fan-out on its behalf.
+However, this shifts the quadratic cost from the coordinator to the broadcast
+channel; while this may be of interest to concrete implementations, it does not
+fundamentally alter the cost. Therefore for the purpose of analytic complexity
+we consider the coordinator's boundary to be drawn around any broadcast channel
+it may be using.
+
+\begin{table}
+	\centering
+% BEGIN communication-3-5-3-128
+	\begin{tabular}{c c c c}
+		\toprule
+		Communication & Round & Download & Upload \\ \midrule
+		Coordinator & 1 & 192 & 0 \\
+		            & 2 & 96 & 864 \\
+		            & Total & 288 & 864 \\
+		\midrule
+		Participant & 1 & 0 & 64 \\
+		            & 2 & 288 & 32 \\
+		            & Total & 288 & 96 \\
+		\bottomrule
+	\end{tabular}
+% END communication-3-5-3-128
+	\caption{Communication complexity (in number of communicated bytes) for 3-of-5 FROST with 3 participants at the 128-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN communication-6-10-8-224
+	\begin{tabular}{c c c c}
+		\toprule
+		Communication & Round & Download & Upload \\ \midrule
+		Coordinator & 1 & 912 & 0 \\
+		            & 2 & 456 & 10944 \\
+		            & Total & 1368 & 10944 \\
+		\midrule
+		Participant & 1 & 0 & 114 \\
+		            & 2 & 1368 & 57 \\
+		            & Total & 1368 & 171 \\
+		\bottomrule
+	\end{tabular}
+% END communication-6-10-8-224
+	\caption{Communication complexity (in number of communicated bytes) for 6-of-10 FROST with 8 participants at the 224-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN communication-600-1000-700-128
+	\begin{tabular}{c c c c}
+		\toprule
+		Communication & Round & Download & Upload \\ \midrule
+		Coordinator & 1 & 44800 & 0 \\
+		            & 2 & 22400 & 47040000 \\
+		            & Total & 67200 & 47040000 \\
+		\midrule
+		Participant & 1 & 0 & 64 \\
+		            & 2 & 67200 & 32 \\
+		            & Total & 67200 & 96 \\
+		\bottomrule
+	\end{tabular}
+% END communication-600-1000-700-128
+	\caption{Communication complexity (in number of communicated bytes) for 600-of-1000 FROST with 700 participants at the 128-bit security level.}
+\end{table}
+
+\subsection{Memory complexity}
+
+In the setup phase (before the start of a signing session), the coordinator and
+participants need to store $N + 1$ group elements in memory, corresponding to
+the group information. Participants additionally need to store 2 scalars: one
+representing their identity within the signing group, and the other being their
+secret share. The coordinator additionally needs to store $P$ scalars for the
+identities of the signing group participants.
+
+All of the setup data must be stored throughout the signing session, alongside
+round-specific data. In the remainder of this section, as well as the tables
+below, we track the "high water" mark: the maximum amount of data that the
+coordinator or a participant needs to store during the round.
+
+In round 1, the coordinator additionally stores the $2P$ encoded group elements
+at the end of round 1; there is no need for these to be decoded (for validity
+checking) before broadcasting them in round 2. Participants store an additional
+2 group elements (along with their encodings as part of the message to the
+coordinator), and 2 scalars that need to be held through the end of round 2.
+
+In round 2, the "high water" mark for both the participants (during signing) and
+the coordinator (during aggregation) is computation of the binding factors:
+
+\begin{itemize}
+	\item The hash calculation
+	$\mathsf{encoded\_commitment\_hash} = \mathsf{H5}(\mathsf{encoded\_group\_commitment})$
+	requires $2P$ encoded group elements and $P$ encoded scalars.
+	\item The commitment list also needs to be parsed in memory for subsequent
+	use, costing $2P$ group elements and $P$ scalars.
+	\item The $\mathsf{H5}$ hasher stores state of at least its block size and
+	output size simultaneously at some point during the calculation.
+	\item The preparation of $\mathsf{rho\_input\_prefix}$ just afterwards needs
+	one encoded group element and one hash output, which in the protocol
+	specification are computed prior to $\mathsf{encoded\_commitment\_hash}$.
+\end{itemize}
+
+Therefore, for the protocol as specified:
+
+\begin{itemize}
+	\item The coordinator stores a maximum of $2P + N + 1$ group elements, $2P$
+	scalars, $2P + 1$ encoded group elements, $P$ encoded scalars, 1 hash block,
+	and 2 hash outputs in memory.
+	\item Participants store a maximum of $2P + N + 3$ group elements, $P + 4$
+	scalars, $2P + 1$ encoded group elements, $P$ encoded scalars, 1 hash block,
+	and 2 hash outputs in memory.
+\end{itemize}
+
+An optimised implementation could reduce this maximum memory usage in several
+ways:
+
+\begin{itemize}
+	\item Incrementally compute $\mathsf{encoded\_commitment\_hash}$ by updating
+	the $\mathsf{H5}$ hasher with $\mathsf{encoded\_group\_commitment}$
+	incrementally instead of encoding it in full.
+	\item Compute the other inputs to $\mathsf{rho\_input\_prefix}$ after
+	$\mathsf{encoded\_commitment\_hash}$ instead of beforehand.
+\end{itemize}
+
+\begin{table}
+	\centering
+% BEGIN memory-3-5-3-128
+	\begin{tabular}{c c c c c c}
+		\toprule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
+		Coordinator & Setup & 6 & 3 & 0 & 672 \\
+		            & 1 & 6 & 3 & 192 & 864 \\
+		            & 2 & 12 & 6 & 576 & 1920 \\
+		\midrule
+		Participant & Setup & 6 & 2 & 0 & 640 \\
+		            & 1 & 8 & 4 & 64 & 960 \\
+		            & 2 & 12 & 7 & 576 & 1952 \\
+		\bottomrule
+	\end{tabular}
+% END memory-3-5-3-128
+	\caption{Memory complexity for 3-of-5 FROST with 3 participants at the 128-bit security level. The cost is in number of bytes simultaneously stored.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN memory-6-10-8-224
+	\begin{tabular}{c c c c c c}
+		\toprule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
+		Coordinator & Setup & 11 & 8 & 0 & 2337 \\
+		            & 1 & 11 & 8 & 912 & 3249 \\
+		            & 2 & 27 & 16 & 1789 & 7318 \\
+		\midrule
+		Participant & Setup & 11 & 2 & 0 & 1995 \\
+		            & 1 & 13 & 4 & 114 & 2565 \\
+		            & 2 & 27 & 12 & 1789 & 7090 \\
+		\bottomrule
+	\end{tabular}
+% END memory-6-10-8-224
+	\caption{Memory complexity for 6-of-10 FROST with 8 participants at the 224-bit security level. The cost is in number of bytes simultaneously stored.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN memory-600-1000-700-128
+	\begin{tabular}{c c c c c c}
+		\toprule
+		Memory & Round & Elements & Scalars & Arb bytes & Cost \\ \midrule
+		Coordinator & Setup & 1001 & 700 & 0 & 118496 \\
+		            & 1 & 1001 & 700 & 44800 & 163296 \\
+		            & 2 & 2401 & 1400 & 67488 & 342784 \\
+		\midrule
+		Participant & Setup & 1001 & 2 & 0 & 96160 \\
+		            & 1 & 1003 & 4 & 64 & 96480 \\
+		            & 2 & 2401 & 704 & 67488 & 320512 \\
+		\bottomrule
+	\end{tabular}
+% END memory-600-1000-700-128
+	\caption{Memory complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level. The cost is in number of bytes simultaneously stored.}
+\end{table}
+
+\subsection{Computational complexity}
+
+The coordinator performs no significant computations in round 1. Participants
+perform 2 fixed-base exponentiations, and (for the security levels presented in
+this document) process 2 blocks of hash function input.
+
+The significant computations occur during round 2.
+
+Participants perform $2P$ group element multiplications, $P$ exponentiations,
+$P + 1$ scalar additions, and $2P + 2$ scalar multiplications. The during
+aggregation, the coordinator performs $2P$ group element multiplications, $P$
+exponentiations, and $P$ scalar additions.
+
+TODO: Fill out hash function complexity.
+
+TODO: Convey the multi-exp by showing the number of terms in it, and then include
+its muls etc. for a specific algorithm in the table (e.g. Pippenger).
+
+\begin{table}
+	\centering
+% BEGIN computational-3-5-3-128
+	\begin{tabular}{c c c c c c c c c c c c c}
+		\toprule
+		Computation & Round & $\mathsf{Read}_A$ & $\mathsf{Write}_A$ & $A \times A$ & $A^k$  & $B^k$  & $\mathsf{Read}_k$ & $\mathsf{Write}_k$ & $k + k$ & $k \times k$ & $k^n$ & H blocks \\ \midrule
+		Coordinator & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		            & 2 & 6 & 7 & 6 & 3 & 0 & 3 & 15 & 3 & 0 & 0 & 10 \\
+		            & Total & 6 & 7 & 6 & 3 & 0 & 3 & 15 & 3 & 0 & 0 & 10 \\
+		\midrule
+		Participant & 1 & 0 & 2 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 0 & 2 \\
+		            & 2 & 6 & 9 & 6 & 3 & 0 & 3 & 7 & 4 & 8 & 1 & 11 \\
+		            & Total & 6 & 11 & 6 & 3 & 2 & 3 & 9 & 4 & 8 & 1 & 13 \\
+		\bottomrule
+	\end{tabular}
+% END computational-3-5-3-128
+	\caption{Computational complexity for 3-of-5 FROST with 3 participants at the 128-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN computational-6-10-8-224
+	\begin{tabular}{c c c c c c c c c c c c c}
+		\toprule
+		Computation & Round & $\mathsf{Read}_A$ & $\mathsf{Write}_A$ & $A \times A$ & $A^k$  & $B^k$  & $\mathsf{Read}_k$ & $\mathsf{Write}_k$ & $k + k$ & $k \times k$ & $k^n$ & H blocks \\ \midrule
+		Coordinator & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		            & 2 & 16 & 17 & 16 & 8 & 0 & 8 & 80 & 8 & 0 & 0 & 36 \\
+		            & Total & 16 & 17 & 16 & 8 & 0 & 8 & 80 & 8 & 0 & 0 & 36 \\
+		\midrule
+		Participant & 1 & 0 & 2 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 0 & 2 \\
+		            & 2 & 16 & 19 & 16 & 8 & 0 & 8 & 17 & 9 & 18 & 1 & 37 \\
+		            & Total & 16 & 21 & 16 & 8 & 2 & 8 & 19 & 9 & 18 & 1 & 39 \\
+		\bottomrule
+	\end{tabular}
+% END computational-6-10-8-224
+	\caption{Computational complexity for 6-of-10 FROST with 8 participants at the 224-bit security level.}
+\end{table}
+
+\begin{table}
+	\centering
+% BEGIN computational-600-1000-700-128
+	\begin{tabular}{c c c c c c c c c c c c c}
+		\toprule
+		Computation & Round & $\mathsf{Read}_A$ & $\mathsf{Write}_A$ & $A \times A$ & $A^k$  & $B^k$  & $\mathsf{Read}_k$ & $\mathsf{Write}_k$ & $k + k$ & $k \times k$ & $k^n$ & H blocks \\ \midrule
+		Coordinator & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		            & 2 & 1400 & 1401 & 1400 & 700 & 0 & 700 & 491400 & 700 & 0 & 0 & 1927 \\
+		            & Total & 1400 & 1401 & 1400 & 700 & 0 & 700 & 491400 & 700 & 0 & 0 & 1927 \\
+		\midrule
+		Participant & 1 & 0 & 2 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 0 & 2 \\
+		            & 2 & 1400 & 1403 & 1400 & 700 & 0 & 700 & 1401 & 701 & 1402 & 1 & 1928 \\
+		            & Total & 1400 & 1405 & 1400 & 700 & 2 & 700 & 1403 & 701 & 1402 & 1 & 1930 \\
+		\bottomrule
+	\end{tabular}
+% END computational-600-1000-700-128
+	\caption{Computational complexity for 600-of-1000 FROST with 700 participants at the 128-bit security level.}
+\end{table}
